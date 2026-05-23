@@ -79,7 +79,7 @@ export function initGame(canvasEl, ariaEl, pauseDlg, resumeButton, restartPause,
   });
 
   startNewGame();
-  requestAnimationFrame(loop);
+  rafId = requestAnimationFrame(loop);
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +103,9 @@ function startNewGame() {
 }
 
 function restartGame() {
+  if (rafId) cancelAnimationFrame(rafId);
   startNewGame();
+  rafId = requestAnimationFrame(loop);
 }
 
 function handlePause() {
@@ -238,7 +240,7 @@ function triggerWin() {
 
 function render(now) {
   drawBackground(ctx);
-  drawGround(ctx, camX);
+  drawGround(ctx);
   drawPlatforms(ctx, platforms, camX);
   drawEnemies(ctx, enemies, camX);
 

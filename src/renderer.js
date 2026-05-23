@@ -20,11 +20,11 @@ export function drawBackground(ctx) {
 // Ground
 // ---------------------------------------------------------------------------
 
-export function drawGround(ctx, camX) {
-  // Ground stripe
+export function drawGround(ctx) {
+  // Ground fills from the ground line to the bottom of the canvas.
   ctx.fillStyle = COLORS.ground;
-  ctx.fillRect(0, GROUND_TOP - camX * 0, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_TOP);
-  // Subtle top line in sky-blue
+  ctx.fillRect(0, GROUND_TOP, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_TOP);
+  // Subtle highlight on the top edge.
   ctx.fillStyle = COLORS.platformTop;
   ctx.fillRect(0, GROUND_TOP, CANVAS_WIDTH, 3);
 }
