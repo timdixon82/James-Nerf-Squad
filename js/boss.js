@@ -24,7 +24,7 @@ function createBoss(levelIdx, groundY) {
   };
 }
 
-function updateBoss(boss, player, darts, platforms, groundY, particles) {
+function updateBoss(boss, player, darts, platforms, groundY, particles, camX) {
   if (!boss.alive) return;
   boss.anim++;
   boss.hurtTimer = Math.max(0, boss.hurtTimer - 1);
@@ -32,17 +32,29 @@ function updateBoss(boss, player, darts, platforms, groundY, particles) {
              : boss.hp < boss.maxHp * 0.66 ? 1 : 0;
   var speed = 1.2 + boss.phase * 0.6;
 
+  // Anchor the boss roaming zone to the camera so it follows the player across the scrolling world.
+  var zoneLeft  = camX + 40;
+  var zoneRight = camX + CANVAS_W - 40;
+
   if (boss.type === 2) {
     boss.y  = groundY - boss.h - 60 + Math.sin(boss.anim * 0.04) * 20;
     boss.x += boss.vx * speed;
-    if (boss.x < 60 || boss.x > CANVAS_W - 60) boss.vx *= -1;
+    if (boss.x < zoneLeft || boss.x > zoneRight) {
+      boss.vx *= -1;
+      // Clamp so the boss cannot drift permanently out of the visible zone.
+      boss.x = Math.max(zoneLeft, Math.min(zoneRight, boss.x));
+    }
   } else {
     boss.vy = clamp(boss.vy + GRAVITY, -15, 12);
     boss.x += boss.vx * speed;
     boss.y += boss.vy;
     boss.stomping = false;
     if (boss.y + boss.h >= groundY) { boss.y = groundY - boss.h; boss.vy = 0; }
-    if (boss.x < 40 || boss.x > CANVAS_W - 40) { boss.vx *= -1; boss.dir = boss.vx > 0 ? 1 : -1; }
+    if (boss.x < zoneLeft || boss.x > zoneRight) {
+      boss.vx *= -1;
+      boss.dir = boss.vx > 0 ? 1 : -1;
+      boss.x = Math.max(zoneLeft, Math.min(zoneRight, boss.x));
+    }
   }
 
   boss.attackTimer--;

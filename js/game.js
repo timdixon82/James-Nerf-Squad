@@ -568,7 +568,7 @@ Game.prototype._updateGameplay = function() {
   for (var ei = 0; ei < enemies.length; ei++) {
     if (enemies[ei].alive) updateEnemy(enemies[ei], player, darts, platforms, ls.groundY, particles, ls.camX);
   }
-  if (boss && boss.alive) updateBoss(boss, player, darts, platforms, ls.groundY, particles);
+  if (boss && boss.alive) updateBoss(boss, player, darts, platforms, ls.groundY, particles, ls.camX);
   for (var si = squadMembers.length - 1; si >= 0; si--) {
     updateSquadMember(squadMembers[si], player, enemies, boss, darts, platforms, ls.groundY);
     if (squadMembers[si].life <= 0) squadMembers.splice(si, 1);
