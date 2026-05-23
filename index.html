@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>James' Nerf Squad</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+// Inline a tiny error catcher so black-screen failures are visible
+window.addEventListener('error', function(e) {
+  var c = document.getElementById('gameCanvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  c.width = 480; c.height = 270;
+  ctx.fillStyle = '#000'; ctx.fillRect(0,0,480,270);
+  ctx.fillStyle = '#f00'; ctx.font = '10px monospace';
+  ctx.fillText('ERROR: ' + e.message, 8, 20);
+  ctx.fillText('File: ' + (e.filename||'').split('/').pop() + ' line ' + e.lineno, 8, 36);
+});
+</script>
+<!-- Load modules in strict dependency order -->
+<script src="js/constants.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/input.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/music.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/player.js"></script>
+<script src="js/enemy.js"></script>
+<script src="js/boss.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/screens.js"></script>
+<script src="js/touch.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
