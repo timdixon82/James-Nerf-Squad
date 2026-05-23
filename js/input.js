@@ -6,7 +6,8 @@
 
 var Input = (function () {
 
-  var held  = {};
+  var held      = {};
+  var touchHeld = {};          // mirrors touch-button held state for pollMovement
   var state = {
     left:  false,
     right: false,
@@ -33,10 +34,11 @@ var Input = (function () {
 
   function pollMovement(inGame) {
     if (!inGame) return;
-    state.left  = !!(held[bindings.left]  || held['a'] || held['A']);
-    state.right = !!(held[bindings.right] || held['d'] || held['D']);
-    state.jump  = !!(held[bindings.jump]  || held['w'] || held['W']);
-    state.shoot = !!(held[bindings.shoot]);
+    // Include touchHeld so touch presses survive across frames alongside keyboard held state.
+    state.left  = !!(held[bindings.left]  || held['a'] || held['A'] || touchHeld['left']);
+    state.right = !!(held[bindings.right] || held['d'] || held['D'] || touchHeld['right']);
+    state.jump  = !!(held[bindings.jump]  || held['w'] || held['W'] || touchHeld['jump']);
+    state.shoot = !!(held[bindings.shoot] || touchHeld['shoot']);
   }
 
   function onKeyDown(key, isRepeat) {
@@ -63,18 +65,19 @@ var Input = (function () {
   }
 
   function onTouchDown(id) {
-    if (id === 'left')   state.left   = true;
-    if (id === 'right')  state.right  = true;
-    if (id === 'jump')   { state.jump = true;  state.jumpPressed  = true; }
-    if (id === 'shoot')  { state.shoot = true; state.shootPressed = true; }
+    // Write into touchHeld so pollMovement can OR it with keyboard held state each frame.
+    if (id === 'left')   { touchHeld['left']  = true; state.left  = true; }
+    if (id === 'right')  { touchHeld['right'] = true; state.right = true; }
+    if (id === 'jump')   { touchHeld['jump']  = true; state.jump  = true; state.jumpPressed  = true; }
+    if (id === 'shoot')  { touchHeld['shoot'] = true; state.shoot = true; state.shootPressed = true; }
     if (id === 'switch') state.switchPressed = true;
   }
 
   function onTouchUp(id) {
-    if (id === 'left')  state.left  = false;
-    if (id === 'right') state.right = false;
-    if (id === 'jump')  state.jump  = false;
-    if (id === 'shoot') state.shoot = false;
+    if (id === 'left')  { touchHeld['left']  = false; state.left  = false; }
+    if (id === 'right') { touchHeld['right'] = false; state.right = false; }
+    if (id === 'jump')  { touchHeld['jump']  = false; state.jump  = false; }
+    if (id === 'shoot') { touchHeld['shoot'] = false; state.shoot = false; }
   }
 
   return {
