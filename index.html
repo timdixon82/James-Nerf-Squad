@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Auto-refresh kept at 30 seconds (was 10 s in the placeholder) so Tim's
+      tab continues to pick up changes while the build is in progress.
+      Remove this tag once v0.1 is merged and stable.
+    -->
+    <meta http-equiv="refresh" content="30" />
+    <title>James-Nerf-Squad</title>
+    <style>
+      /* ------------------------------------------------------------------ */
+      /* Reset and brand tokens                                               */
+      /* Brand: navy #061528, white #ffffff, sky-blue #63D2FF, orange #FF7C00 */
+      /* ------------------------------------------------------------------ */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --color-bg       : #061528;
+        --color-text     : #ffffff;
+        --color-muted    : #63D2FF;
+        --color-accent   : #FF7C00;
+        --color-panel-bg : #0d2040;
+        --font-system    : -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono      : ui-monospace, "SF Mono", Menlo, monospace;
+        color-scheme     : dark;
+      }
+
+      html, body {
+        height  : 100%;
+        overflow: hidden;
+      }
+
+      body {
+        background : var(--color-bg);
+        color      : var(--color-text);
+        font-family: var(--font-system);
+        font-size  : 1rem;
+        line-height: 1.5;
+        display    : flex;
+        flex-direction : column;
+        align-items    : center;
+        justify-content: flex-start;
+        padding    : 0.5rem;
+        gap        : 0.5rem;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Skip link                                                            */
+      /* ------------------------------------------------------------------ */
+      .skip-link {
+        position   : absolute;
+        top        : -999px;
+        left       : 0;
+        background : var(--color-accent);
+        color      : var(--color-bg);
+        padding    : 0.5rem 1rem;
+        font-weight: bold;
+        z-index    : 9999;
+        text-decoration: none;
+        border-radius: 0 0 4px 0;
+      }
+      .skip-link:focus { top: 0; }
+
+      /* ------------------------------------------------------------------ */
+      /* Header                                                               */
+      /* ------------------------------------------------------------------ */
+      header {
+        width    : 100%;
+        max-width: 960px;
+        display  : flex;
+        justify-content : space-between;
+        align-items     : baseline;
+        flex-shrink: 0;
+      }
+
+      h1 {
+        font-size  : 1.1rem;
+        font-weight: 700;
+        color      : var(--color-accent);
+      }
+
+      .version {
+        font-size: 0.75rem;
+        color    : var(--color-muted);
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Canvas wrapper                                                       */
+      /* ------------------------------------------------------------------ */
+      #canvas-wrapper {
+        position  : relative;
+        width     : 960px;
+        height    : 540px;
+        flex-shrink: 0;
+      }
+
+      canvas {
+        display: block;
+        width  : 960px;
+        height : 540px;
+        border : 2px solid var(--color-muted);
+        border-radius: 4px;
+        /* Canvas is a visual game; described by aria-label + aria-live region */
+        outline: none;
+      }
+
+      canvas:focus-visible {
+        outline: 3px solid var(--color-accent);
+        outline-offset: 3px;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Pause dialog                                                         */
+      /* ------------------------------------------------------------------ */
+      dialog, [role="dialog"] {
+        position  : absolute;
+        top       : 50%;
+        left      : 50%;
+        transform : translate(-50%, -50%);
+        background: var(--color-panel-bg);
+        border    : 2px solid var(--color-muted);
+        border-radius: 8px;
+        padding   : 2rem;
+        z-index   : 100;
+        min-width : 300px;
+        text-align: center;
+        color     : var(--color-text);
+      }
+
+      dialog[hidden], [role="dialog"][hidden] {
+        display: none;
+      }
+
+      dialog h2, [role="dialog"] h2 {
+        font-size  : 1.5rem;
+        color      : var(--color-accent);
+        margin-bottom: 1rem;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Buttons                                                              */
+      /* ------------------------------------------------------------------ */
+      .btn {
+        display    : inline-block;
+        padding    : 0.6rem 1.4rem;
+        font-size  : 1rem;
+        font-weight: 600;
+        font-family: var(--font-system);
+        border     : 2px solid var(--color-accent);
+        border-radius: 4px;
+        background : transparent;
+        color      : var(--color-accent);
+        cursor     : pointer;
+        transition : background 0.15s, color 0.15s;
+        margin     : 0.25rem;
+      }
+
+      .btn:hover {
+        background: var(--color-accent);
+        color     : var(--color-bg);
+      }
+
+      .btn:focus-visible {
+        outline       : 3px solid var(--color-muted);
+        outline-offset: 3px;
+      }
+
+      .btn[hidden] { display: none; }
+
+      /* ------------------------------------------------------------------ */
+      /* Win / Restart button beneath canvas                                 */
+      /* ------------------------------------------------------------------ */
+      #win-controls {
+        display   : flex;
+        gap       : 0.5rem;
+        flex-shrink: 0;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Aria live region (off-screen visually)                               */
+      /* ------------------------------------------------------------------ */
+      #game-status {
+        position  : absolute;
+        width     : 1px;
+        height    : 1px;
+        overflow  : hidden;
+        clip      : rect(0,0,0,0);
+        white-space: nowrap;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Controls summary                                                     */
+      /* ------------------------------------------------------------------ */
+      #controls-summary {
+        width     : 100%;
+        max-width : 960px;
+        font-size : 0.8rem;
+        color     : var(--color-muted);
+        flex-shrink: 0;
+        padding-bottom: 0.25rem;
+      }
+
+      #controls-summary dl {
+        display          : grid;
+        grid-template-columns: max-content 1fr;
+        gap              : 0.1rem 0.75rem;
+      }
+
+      #controls-summary dt {
+        font-weight: 600;
+        color      : var(--color-text);
+        white-space: nowrap;
+      }
+
+      #controls-summary dd { color: var(--color-muted); }
+
+      kbd {
+        background    : #1a3050;
+        border        : 1px solid var(--color-muted);
+        border-radius : 3px;
+        padding       : 0.1rem 0.3rem;
+        font-family   : var(--font-mono);
+        font-size     : 0.9em;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Reduced-motion notice                                                */
+      /* ------------------------------------------------------------------ */
+      @media (prefers-reduced-motion: reduce) {
+        /* Canvas animations are controlled in JS. CSS transitions off. */
+        *, *::before, *::after { transition: none !important; animation: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Skip to game canvas -->
+    <a class="skip-link" href="#game-canvas">Skip to game</a>
+
+    <header>
+      <h1>James-Nerf-Squad</h1>
+      <span class="version">v0.1 prototype</span>
+    </header>
+
+    <!--
+      Aria live region: announces game events to screen-reader users.
+      Known gap: the Canvas render is not accessible to screen readers.
+      See "Known accessibility gap and roadmap" in README.md.
+      Region is role="status" (polite) to avoid interrupting navigation.
+    -->
+    <div id="game-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="canvas-wrapper">
+      <canvas
+        id="game-canvas"
+        width="960"
+        height="540"
+        aria-label="James-Nerf-Squad game canvas. Use keyboard controls to play. Game events are announced below."
+        tabindex="0"
+      ></canvas>
+
+      <!--
+        Pause dialog.
+        Uses role="dialog" with aria-modal and aria-labelledby for
+        broad screen-reader compatibility alongside the native dialog element.
+      -->
+      <div
+        id="pause-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pause-title"
+        hidden
+      >
+        <h2 id="pause-title">Game Paused</h2>
+        <p>Press <kbd>Escape</kbd> or choose an option below.</p>
+        <button id="resume-btn" class="btn" type="button">Resume</button>
+        <button id="restart-btn-pause" class="btn" type="button">Restart</button>
+      </div>
+    </div>
+
+    <!-- Win-state restart button, shown outside canvas below it -->
+    <div id="win-controls">
+      <button id="restart-btn-win" class="btn" type="button" hidden>
+        Play again
+      </button>
+    </div>
+
+    <!-- Controls quick reference (always visible) -->
+    <section id="controls-summary" aria-label="Game controls reference">
+      <dl>
+        <dt>Move left / right</dt>
+        <dd><kbd>A</kbd> / <kbd>D</kbd> or <kbd>Left</kbd> / <kbd>Right</kbd> arrow keys</dd>
+        <dt>Jump (double-jump supported)</dt>
+        <dd><kbd>Space</kbd> or <kbd>Up</kbd> arrow key</dd>
+        <dt>Shoot nerf dart</dt>
+        <dd><kbd>F</kbd> or <kbd>Enter</kbd></dd>
+        <dt>Pause / Resume</dt>
+        <dd><kbd>Escape</kbd></dd>
+        <dt>Restart</dt>
+        <dd><kbd>R</kbd></dd>
+      </dl>
+    </section>
+
+    <script type="module">
+      import { initGame } from './src/game.js';
+
+      const canvas        = document.getElementById('game-canvas');
+      const ariaLive      = document.getElementById('game-status');
+      const pauseDialog   = document.getElementById('pause-dialog');
+      const resumeBtn     = document.getElementById('resume-btn');
+      const restartPause  = document.getElementById('restart-btn-pause');
+      const restartWin    = document.getElementById('restart-btn-win');
+
+      // Focus the canvas so keyboard input is captured immediately.
+      canvas.focus();
+
+      initGame(canvas, ariaLive, pauseDialog, resumeBtn, restartPause, restartWin);
+    </script>
+  </body>
+</html>
