@@ -456,10 +456,19 @@ Game.prototype.startLevel = function(idx) {
   player.unlockedBlasters = unlockedBlasters;
 
   var platforms = [];
-  for (var i = 0; i < cfg.platformCount * 3; i++) {
+  var totalPlats = cfg.platformCount * 3;
+  // Spread platforms across three height tiers to prevent shelf stacking.
+  // Tier 0: low (35–65 px above ground), tier 1: mid (70–100 px), tier 2: high (110–145 px).
+  var tiers = [
+    { lo: 35,  hi: 65  },
+    { lo: 70,  hi: 100 },
+    { lo: 110, hi: 145 },
+  ];
+  for (var i = 0; i < totalPlats; i++) {
+    var tier = tiers[i % tiers.length];
     platforms.push({
       x: rndInt(50, worldW - 80),
-      y: gY - rndInt(35, 90),
+      y: gY - rndInt(tier.lo, tier.hi),
       w: rndInt(40, 100),
       h: TILE,
       color: cfg.groundColor,
