@@ -494,7 +494,7 @@ Game.prototype._resumeGame = function() {
 
 Game.prototype._activateTitleItem = function(idx) {
   playMenuConfirm();
-  if (idx === 0)      { this.gs.screen = 'select'; this.selectHover = 0; startMusic('title'); }
+  if (idx === 0)      { this.gs.screen = 'select'; this.selectHover = 0; startMusic('title'); announce('Mission Select. Use Arrow Up and Down to choose a level, then press Enter.'); Speech.narrate('Mission Select.', 'normal'); }
   else if (idx === 1) { this._goCustomise(); }
   else if (idx === 2) { this._goHelp();      }
   else if (idx === 3) { this._goSettings();  }
@@ -828,6 +828,9 @@ Game.prototype._updateGameplay = function() {
       pu.alive = false;
       playPowerUp();
       this._applyPowerUp(pu.type, player, ls);
+      var label = POWERUPS[pu.type] ? POWERUPS[pu.type].label : pu.type;
+      announce(label + ' collected.');
+      Speech.narrate(label + ' collected.', 'normal');
       spawnParticles(particles, pu.x, pu.y, POWERUPS[pu.type] ? POWERUPS[pu.type].color : '#fff', 8, 2);
     }
   }
