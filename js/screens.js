@@ -307,22 +307,127 @@ function drawReducedMotionScreen(ctx) {
   }
 }
 
+/* ── Loadout ────────────────────────────────────────────────────────────── */
+
+function drawLoadoutScreen(ctx, blasters, inventory, currentBlaster, highlightIdx, frame, touchMode, reducedMotion) {
+  var weaponKeys = Object.keys(blasters);
+
+  // Compute unique inventory types with counts
+  var typeCounts = {};
+  for (var i = 0; i < inventory.length; i++) {
+    typeCounts[inventory[i]] = (typeCounts[inventory[i]] || 0) + 1;
+  }
+  var invTypes = Object.keys(typeCounts);
+
+  // Semi-transparent overlay (same style as pause screen)
+  ctx.fillStyle = 'rgba(0,0,0,0.82)';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  // Title
+  px(ctx, 'LOADOUT', CANVAS_W / 2, 12, 8, '#ffff44', 'center');
+  px(ctx, 'SELECT WEAPON OR USE A POWERUP', CANVAS_W / 2, 26, 4, '#aaaaaa', 'center');
+
+  // --- WEAPONS SECTION ---
+  px(ctx, 'WEAPONS', CANVAS_W / 2, 42, 5, '#ffffff', 'center');
+  var cellSize    = 44;
+  var weaponCols  = 2;
+  var weaponStartX = CANVAS_W / 2 - weaponCols * cellSize / 2 - cellSize / 2;
+  var weaponStartY = 50;
+
+  for (var wi = 0; wi < weaponKeys.length; wi++) {
+    var col = wi % weaponCols;
+    var row = Math.floor(wi / weaponCols);
+    var cx  = weaponStartX + col * (cellSize + 8) + cellSize / 2;
+    var cy  = weaponStartY + row * (cellSize + 4);
+
+    var isEquipped   = weaponKeys[wi] === currentBlaster;
+    var isHighlighted = wi === highlightIdx;
+    // Reduced-motion: static highlight; normal: pulsing glow
+    var hlAlpha = isHighlighted ? (reducedMotion ? 0.28 : 0.18 + Math.sin(frame * 0.12) * 0.10) : 0.06;
+
+    ctx.fillStyle = isHighlighted ? ('rgba(255,255,68,' + hlAlpha + ')') : 'rgba(255,255,255,0.08)';
+    ctx.fillRect(cx - cellSize / 2, cy, cellSize, cellSize);
+
+    if (isHighlighted) {
+      ctx.strokeStyle = '#ffff44';
+      ctx.lineWidth   = 2;
+      ctx.strokeRect(cx - cellSize / 2, cy, cellSize, cellSize);
+    }
+
+    var blasterData = blasters[weaponKeys[wi]];
+    var wColor = blasterData.color || '#ffffff';
+    px(ctx, blasterData.name ? blasterData.name.toUpperCase() : weaponKeys[wi].toUpperCase(), cx, cy + 13, 3, wColor, 'center');
+    if (isEquipped) {
+      px(ctx, 'EQUIPPED', cx, cy + 24, 3, '#44ff44', 'center');
+    }
+    var ammoStr = 'AMO:' + blasterData.ammo;
+    px(ctx, ammoStr, cx, cy + 35, 3, '#aaaaaa', 'center');
+  }
+
+  // --- POWERUPS SECTION ---
+  var powerupStartY = weaponStartY + Math.ceil(weaponKeys.length / weaponCols) * (cellSize + 4) + 16;
+  px(ctx, 'STORED POWERUPS', CANVAS_W / 2, powerupStartY - 10, 5, '#ffffff', 'center');
+
+  if (invTypes.length === 0) {
+    px(ctx, 'No powerups stored.', CANVAS_W / 2, powerupStartY + 16, 5, '#888888', 'center');
+    px(ctx, 'Collect powerups in the level to fill your', CANVAS_W / 2, powerupStartY + 30, 3, '#666666', 'center');
+    px(ctx, 'inventory, then use them from here.', CANVAS_W / 2, powerupStartY + 40, 3, '#666666', 'center');
+  } else {
+    var puCols   = 3;
+    var puStartX = CANVAS_W / 2 - puCols * cellSize / 2 - cellSize / 2 + 22;
+    for (var pi = 0; pi < invTypes.length; pi++) {
+      var ptype = invTypes[pi];
+      var pcol  = pi % puCols;
+      var prow  = Math.floor(pi / puCols);
+      var pcx   = puStartX + pcol * (cellSize + 4) + cellSize / 2;
+      var pcy   = powerupStartY + prow * (cellSize + 4);
+
+      var puIdx          = weaponKeys.length + pi;
+      var isPuHighlighted = puIdx === highlightIdx;
+      var puHlAlpha = isPuHighlighted ? (reducedMotion ? 0.28 : 0.18 + Math.sin(frame * 0.12) * 0.10) : 0.06;
+
+      ctx.fillStyle = isPuHighlighted ? ('rgba(255,255,68,' + puHlAlpha + ')') : 'rgba(255,255,255,0.08)';
+      ctx.fillRect(pcx - cellSize / 2, pcy, cellSize, cellSize);
+
+      if (isPuHighlighted) {
+        ctx.strokeStyle = '#ffff44';
+        ctx.lineWidth   = 2;
+        ctx.strokeRect(pcx - cellSize / 2, pcy, cellSize, cellSize);
+      }
+
+      var puData = POWERUPS[ptype] || { label: ptype, color: '#ffffff' };
+      px(ctx, puData.label, pcx, pcy + 14, 4, puData.color, 'center');
+      px(ctx, 'x' + typeCounts[ptype], pcx, pcy + 28, 5, '#ffff44', 'center');
+    }
+  }
+
+  // Footer instructions
+  var footerY = CANVAS_H - (touchMode ? 86 : 16);
+  px(ctx, touchMode ? 'TAP TO SELECT   BACK = CANCEL' : 'ARROWS: NAVIGATE   ENTER: SELECT   ESC/SHIFT: CANCEL',
+     CANVAS_W / 2, footerY, 3, '#888888', 'center');
+
+  // Touch nav strip
+  if (touchMode) {
+    drawMenuNavStrip(ctx, getMenuNavButtons('udlrselback'));
+  }
+}
+
 /* ── Help ───────────────────────────────────────────────────────────────── */
 
 function drawHelpScreen(ctx, page, frame) {
   ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  var totalPages = 3;
+  var totalPages = 4;
   px(ctx, 'HELP  PAGE ' + (page + 1) + '/' + totalPages, CANVAS_W / 2, 8, 5, '#ffff00', 'center');
   ctx.fillStyle = 'rgba(255,255,100,0.2)'; ctx.fillRect(10, 22, CANVAS_W - 20, 1);
 
   if (page === 0) {
     px(ctx, 'CONTROLS', CANVAS_W / 2, 28, 6, '#ff8800', 'center');
     var controls = [
-      ['MOVE',      'LEFT/RIGHT or A/D'],
-      ['JUMP',      'UP or W'],
-      ['SHOOT',     'SPACE'],
-      ['SWITCH GUN','SHIFT'],
-      ['PAUSE',     'ESC'],
+      ['MOVE',         'LEFT/RIGHT or A/D'],
+      ['JUMP',         'UP or W'],
+      ['SHOOT',        'SPACE'],
+      ['LOADOUT',      'SHIFT (see page 4)'],
+      ['PAUSE',        'ESC'],
     ];
     for (var ci = 0; ci < controls.length; ci++) {
       var y = 46 + ci * 18;
@@ -393,6 +498,25 @@ function drawHelpScreen(ctx, page, frame) {
       px(ctx, def.desc,  46, py2 + 18, 4, '#aaa');
       if (def.duration > 0) px(ctx, (def.duration / 60) + 's', CANVAS_W - 16, py2 + 10, 4, '#88ffff', 'right');
       else                   px(ctx, 'INSTANT',                  CANVAS_W - 16, py2 + 10, 4, '#88ff88', 'right');
+    }
+
+  } else if (page === 3) {
+    px(ctx, 'LOADOUT', CANVAS_W / 2, 28, 6, '#ff8800', 'center');
+    var ldLines = [
+      { text: 'Powerups are stored when collected.',      y: 52,  col: '#ffffff' },
+      { text: 'They are not applied straight away.',      y: 66,  col: '#aaaaaa' },
+      { text: 'Up to 20 powerups can be stored.',         y: 88,  col: '#aaffaa' },
+      { text: 'Press Shift to open the Loadout screen.',  y: 110, col: '#ffffff' },
+      { text: 'The game pauses while the screen is open.',y: 124, col: '#aaaaaa' },
+      { text: 'On the Loadout screen:',                   y: 146, col: '#ffff44' },
+      { text: 'Choose a weapon to equip it.',             y: 160, col: '#aaaaaa' },
+      { text: 'Choose a stored powerup to use it.',       y: 174, col: '#aaaaaa' },
+      { text: 'Press Escape or Shift to close',           y: 196, col: '#ffffff' },
+      { text: 'without using anything.',                  y: 210, col: '#aaaaaa' },
+      { text: 'On touch: tap a cell or tap Back.',        y: 232, col: '#888888' },
+    ];
+    for (var li = 0; li < ldLines.length; li++) {
+      px(ctx, ldLines[li].text, CANVAS_W / 2, ldLines[li].y, 4, ldLines[li].col, 'center');
     }
   }
 

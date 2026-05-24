@@ -13,7 +13,7 @@ function drawHeart(ctx, x, y, size) {
   ctx.fillRect(x + 3, y + size - 1, size - 6, 1);
 }
 
-function drawHUD(ctx, lives, score, blaster, ammo, hasShield, speedBoost, megaDartReady, squadActive, level, levelName, touchMode) {
+function drawHUD(ctx, lives, score, blaster, ammo, hasShield, speedBoost, megaDartReady, squadActive, level, levelName, inventoryCount, touchMode) {
   ctx.save();
 
   ctx.fillStyle = 'rgba(0,0,0,0.65)';
@@ -43,6 +43,9 @@ function drawHUD(ctx, lives, score, blaster, ammo, hasShield, speedBoost, megaDa
     drawPowerUpIcon(ctx, activePUs[pi], CANVAS_W / 2 - 20 + pi * 22, barY + 9, 14);
   }
 
+  if (inventoryCount > 0) {
+    px(ctx, 'STORED:' + inventoryCount, CANVAS_W / 2 + 70, barY + 11, 4, '#aaffaa', 'left');
+  }
   px(ctx, touchMode ? 'TAP' : 'SPACE=SHOOT', CANVAS_W - 4, barY + 11, 4, '#888', 'right');
   ctx.restore();
 }

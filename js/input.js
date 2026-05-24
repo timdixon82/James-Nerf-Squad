@@ -64,6 +64,22 @@ var Input = (function () {
     state.switchPressed = false;
   }
 
+  function clearAllInput() {
+    var h = held;
+    for (var k in h) h[k] = false;
+    state.left  = false;
+    state.right = false;
+    state.jump  = false;
+    state.shoot = false;
+    state.switchPressed = false;
+    // clear any other one-shots
+    for (var s in state) {
+      if (typeof state[s] === 'boolean') state[s] = false;
+    }
+    var th = touchHeld;
+    for (var t in th) th[t] = false;
+  }
+
   function onTouchDown(id) {
     // Write into touchHeld so pollMovement can OR it with keyboard held state each frame.
     if (id === 'left')   { touchHeld['left']  = true; state.left  = true; }
@@ -123,5 +139,6 @@ var Input = (function () {
     onTouchDown: onTouchDown,
     onTouchUp: onTouchUp,
     clearOneShots: clearOneShots,
+    clearAllInput: clearAllInput,
   };
 })();
