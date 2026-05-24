@@ -860,8 +860,13 @@ Game.prototype._updateGameplay = function() {
       var label = POWERUPS[pu.type] ? POWERUPS[pu.type].label : pu.type;
       if (ls.inventory.length < 20) {
         ls.inventory.push(pu.type);
-        announce(label + ' stored. Press Switch to open loadout.');
-        Speech.narrate(label + ' stored.', 'normal');
+        var typeCount = 0;
+        for (var ci = 0; ci < ls.inventory.length; ci++) {
+          if (ls.inventory[ci] === pu.type) typeCount++;
+        }
+        var storedMsg = 'Stored. You now hold ' + typeCount + ' ' + label + ' powerup' + (typeCount === 1 ? '.' : 's.');
+        announce(storedMsg);
+        Speech.narrate(storedMsg, 'normal');
       } else {
         announce('Inventory full. Use a powerup to make room.');
         Speech.narrate('Inventory full.', 'normal');
