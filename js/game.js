@@ -5,6 +5,8 @@
  * input, and calls the render and logic modules.
  */
 
+var SCREEN_LOADOUT = 'select-loadout';
+
 function Game(canvas) {
   this.canvas = canvas;
   this.ctx    = canvas.getContext('2d');
@@ -42,6 +44,7 @@ function Game(canvas) {
   this.hairIdx         = 0;
   this.clothIdx        = 0;
   this.helpPage        = 0;
+  this.loadoutIdx      = 0;
 
   this.raf        = 0;
   this.pixelScale = 1;
@@ -227,7 +230,8 @@ Game.prototype._dispatchTap = function(x, y, isTouch) {
     case 'pause':        this._tapPause(x, y);        break;
     case 'settings':     this._tapSettings(x, y);     break;
     case 'bossintro':    this._tapBossIntro(x, y);    break;
-    case 'levelcomplete':this._tapLevelComplete(x, y);break;
+    case 'levelcomplete':  this._tapLevelComplete(x, y); break;
+    case SCREEN_LOADOUT:   this._tapLoadout(x, y);       break;
     case 'game':
       if (isTouch) {
         for (var i = 0; i < this.touchButtons.length; i++) {
@@ -271,7 +275,7 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
         if (key === 'ArrowLeft'  || key === 'a' || key === 'A') { this.clothIdx = (this.clothIdx - 1 + CLOTH_COLORS.length) % CLOTH_COLORS.length; this.gs.clothColor = CLOTH_COLORS[this.clothIdx]; playMenuClick(); }
         if (key === 'ArrowRight' || key === 'd' || key === 'D') { this.clothIdx = (this.clothIdx + 1) % CLOTH_COLORS.length; this.gs.clothColor = CLOTH_COLORS[this.clothIdx]; playMenuClick(); }
       }
-      if (key === 'Enter' || key === 'Escape') { this.gs.screen = 'title'; this.save(); playMenuClick(); }
+      if (key === 'Enter' || key === 'Escape') { this._setScreen('title'); this.save(); playMenuClick(); }
       break;
     }
 
@@ -292,7 +296,7 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
 
     case 'settings': {
       var items = 7;
-      if (key === 'Escape')                               { this.gs.screen = 'title'; this.save(); }
+      if (key === 'Escape')                               { this._setScreen('title'); this.save(); }
       else if (key === 'ArrowDown' || key === 's' || key === 'S') { this.settingsIdx = (this.settingsIdx + 1) % items; playMenuClick(); }
       else if (key === 'ArrowUp'   || key === 'w' || key === 'W') { this.settingsIdx = (this.settingsIdx - 1 + items) % items; playMenuClick(); }
       else if (key === 'Enter') {
@@ -326,6 +330,26 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
     case 'levelcomplete':
       if (key === ' ' || key === 'Enter') this._nextLevel();
       break;
+
+    case SCREEN_LOADOUT: {
+      var weapons  = this.ls.player.unlockedBlasters;
+      var invTypes = this._loadoutInventoryTypes();
+      var totalCells = weapons.length + invTypes.length;
+      if (key === 'Escape' || key === k.switch) {
+        this._closeLoadout('Selection cancelled. Game resumed.');
+      } else if (key === 'ArrowRight' || key === 'ArrowDown') {
+        this.loadoutIdx = (this.loadoutIdx + 1) % totalCells;
+        playMenuClick();
+        this._announceLoadoutFocus(weapons, invTypes);
+      } else if (key === 'ArrowLeft' || key === 'ArrowUp') {
+        this.loadoutIdx = (this.loadoutIdx - 1 + totalCells) % totalCells;
+        playMenuClick();
+        this._announceLoadoutFocus(weapons, invTypes);
+      } else if (key === 'Enter') {
+        this._confirmLoadoutSelection(weapons, invTypes);
+      }
+      break;
+    }
 
     case 'game':
       if (!isRepeat && (key === 'Escape' || key === k.pause || key === 'p')) {
@@ -381,7 +405,7 @@ Game.prototype._tapCustomise = function(x, y) {
     var bx = rowX + i * 24;
     if (x >= bx && x <= bx + 18 && y >= 198 && y <= 216) { self.clothIdx = i; self.gs.clothColor = CLOTH_COLORS[i]; self.customiseFocus = 2; playMenuClick(); }
   });
-  if (y >= 228 && y <= 248 && x >= CANVAS_W / 2 - 55 && x <= CANVAS_W / 2 + 55) { this.gs.screen = 'title'; this.save(); playMenuClick(); }
+  if (y >= 228 && y <= 248 && x >= CANVAS_W / 2 - 55 && x <= CANVAS_W / 2 + 55) { this._setScreen('title'); this.save(); playMenuClick(); }
 };
 Game.prototype._tapGameOver = function(x, y) {
   var menuStartY = 145, menuItemH = 28;
@@ -460,33 +484,33 @@ Game.prototype._tapPause = function(x, y) {
 };
 
 Game.prototype._goTitle = function() {
-  this.gs.screen = 'title';
+  this._setScreen('title');
   startMusic('title');
   playMenuClick();
   announce("James' Nerf Squad. Press Enter or Space to start.");
   Speech.narrate("James' Nerf Squad. Press Enter or Space to start.", 'normal');
 };
-Game.prototype._goSettings = function() { this.gs.screen = 'settings'; this.settingsIdx = 0; playMenuClick(); };
-Game.prototype._goHelp     = function() { this.gs.screen = 'help'; this.helpPage = 0; playMenuClick(); };
+Game.prototype._goSettings = function() { this._setScreen('settings'); this.settingsIdx = 0; playMenuClick(); };
+Game.prototype._goHelp     = function() { this._setScreen('help'); this.helpPage = 0; playMenuClick(); };
 Game.prototype._goCustomise = function() {
-  this.gs.screen    = 'customise';
+  this._setScreen('customise');
   this.customiseFocus = 0;
   this.skinIdx  = Math.max(0, SKIN_COLORS.indexOf(this.gs.skinColor));
   this.hairIdx  = Math.max(0, HAIR_COLORS.indexOf(this.gs.hairColor));
   this.clothIdx = Math.max(0, CLOTH_COLORS.indexOf(this.gs.clothColor));
   playMenuClick();
 };
-Game.prototype._prevHelp  = function() { this.helpPage = (this.helpPage - 1 + 3) % 3; playMenuClick(); };
-Game.prototype._nextHelp  = function() { this.helpPage = (this.helpPage + 1) % 3;     playMenuClick(); };
+Game.prototype._prevHelp  = function() { this.helpPage = (this.helpPage - 1 + 4) % 4; playMenuClick(); };
+Game.prototype._nextHelp  = function() { this.helpPage = (this.helpPage + 1) % 4;     playMenuClick(); };
 Game.prototype._openPause = function() {
-  this.gs.screen = 'pause';
+  this._setScreen('pause');
   this.pauseMenuIdx = 0;
   playMenuClick();
   announce('Game paused.');
   Speech.narrate('Game paused.', 'high');
 };
 Game.prototype._resumeGame = function() {
-  this.gs.screen = 'game';
+  this._setScreen('game');
   playMenuClick();
   announce('Game resumed.');
   Speech.narrate('Game resumed.', 'high');
@@ -494,7 +518,7 @@ Game.prototype._resumeGame = function() {
 
 Game.prototype._activateTitleItem = function(idx) {
   playMenuConfirm();
-  if (idx === 0)      { this.gs.screen = 'select'; this.selectHover = 0; startMusic('title'); announce('Mission Select. Use Arrow Up and Down to choose a level, then press Enter.'); Speech.narrate('Mission Select.', 'normal'); }
+  if (idx === 0)      { this._setScreen('select'); this.selectHover = 0; startMusic('title'); announce('Mission Select. Use Arrow Up and Down to choose a level, then press Enter.'); Speech.narrate('Mission Select.', 'normal'); }
   else if (idx === 1) { this._goCustomise(); }
   else if (idx === 2) { this._goHelp();      }
   else if (idx === 3) { this._goSettings();  }
@@ -503,16 +527,16 @@ Game.prototype._activateTitleItem = function(idx) {
 Game.prototype._activatePauseItem = function(idx) {
   playMenuConfirm();
   if (idx === 0) this._resumeGame();
-  else           { this.gs.screen = 'title'; startMusic('title'); this.ls = null; }
+  else           { this._setScreen('title'); startMusic('title'); this.ls = null; }
 };
 Game.prototype._activateGameOverItem = function(idx) {
   playMenuConfirm();
   if (idx === 0) this.startLevel(this.gs.levelIdx);
-  else           { this.gs.screen = 'title'; startMusic('title'); }
+  else           { this._setScreen('title'); startMusic('title'); }
 };
 Game.prototype._nextLevel = function() {
   var next = this.gs.levelIdx + 1;
-  if (next >= TOTAL_LEVELS) { this.gs.screen = 'title'; startMusic('title'); }
+  if (next >= TOTAL_LEVELS) { this._setScreen('title'); startMusic('title'); }
   else this.startLevel(next);
 };
 
@@ -595,6 +619,7 @@ Game.prototype.startLevel = function(idx) {
     boss:         cfg.bossLevel ? createBoss(idx, gY) : null,
     squadMembers: [],
     particles:    [],
+    inventory:    [],
     camX:         0,
     worldW:       worldW,
     groundY:      gY,
@@ -610,7 +635,7 @@ Game.prototype.startLevel = function(idx) {
     maxEnemies:      cfg.enemyCount,
   };
 
-  this.gs.screen = cfg.bossLevel ? 'bossintro' : 'game';
+  this._setScreen(cfg.bossLevel ? 'bossintro' : 'game');
 };
 
 Game.prototype.start = function() {
@@ -676,6 +701,11 @@ Game.prototype._drawReducedMotionOnce = function() {
   drawReducedMotionScreen(this.ctx);
 };
 
+Game.prototype._setScreen = function(name) {
+  this.gs.screen = name;
+  Input.clearAllInput();
+};
+
 Game.prototype.update = function() {
   this.gs.frame++;
   var screen = this.gs.screen;
@@ -684,7 +714,7 @@ Game.prototype.update = function() {
 
   if (screen === 'bossintro' && this.ls) {
     this.ls.bossIntroTimer--;
-    if (this.ls.bossIntroTimer <= 0) this.gs.screen = 'game';
+    if (this.ls.bossIntroTimer <= 0) this._setScreen('game');
   }
   if (screen === 'game' && this.ls) this._updateGameplay();
 
@@ -706,7 +736,7 @@ Game.prototype._updateGameplay = function() {
 
   if (ls.bossIntroTimer > 0) return;
 
-  if (inp.switchPressed) player.cycleBlaster();
+  if (inp.switchPressed) { this._openLoadout(); return; }
   if (inp.shoot || inp.shootPressed) player.shoot(darts);
   player.update(inp, platforms, ls.groundY);
 
@@ -827,11 +857,16 @@ Game.prototype._updateGameplay = function() {
     if (rectOverlap(player.x - 8, player.y - 8, player.w + 16, player.h + 16, pu.x - 6, pu.y - 6, 24, 24)) {
       pu.alive = false;
       playPowerUp();
-      this._applyPowerUp(pu.type, player, ls);
       var label = POWERUPS[pu.type] ? POWERUPS[pu.type].label : pu.type;
-      announce(label + ' collected.');
-      Speech.narrate(label + ' collected.', 'normal');
-      spawnParticles(particles, pu.x, pu.y, POWERUPS[pu.type] ? POWERUPS[pu.type].color : '#fff', 8, 2);
+      if (ls.inventory.length < 20) {
+        ls.inventory.push(pu.type);
+        announce(label + ' stored. Press Switch to open loadout.');
+        Speech.narrate(label + ' stored.', 'normal');
+      } else {
+        announce('Inventory full. Use a powerup to make room.');
+        Speech.narrate('Inventory full.', 'normal');
+      }
+      spawnParticles(particles, pu.x, pu.y, POWERUPS[pu.type] ? POWERUPS[pu.type].color : '#fff', 10, 2);
     }
   }
 
@@ -855,14 +890,14 @@ Game.prototype._updateGameplay = function() {
   if (ls.levelComplete) {
     ls.lcTimer++;
     if (ls.lcTimer > 60 && (inp.shoot || inp.shootPressed || inp.jumpPressed)) {
-      this.gs.screen = 'levelcomplete';
+      this._setScreen('levelcomplete');
       Input.clearOneShots();
     }
   }
 };
 
 Game.prototype._endGameOver = function() {
-  this.gs.screen = 'gameover';
+  this._setScreen('gameover');
   this.gameOverMenuIdx = 0;
   playGameOver();
   stopMusic();
@@ -892,6 +927,133 @@ Game.prototype._applyPowerUp = function(type, player, ls) {
   }
 };
 
+/* ── Loadout screen ──────────────────────────────────────────────────────── */
+
+Game.prototype._loadoutIndexOfEquipped = function() {
+  var blasters = this.ls.player.unlockedBlasters;
+  for (var i = 0; i < blasters.length; i++) {
+    if (blasters[i] === this.ls.player.blaster) return i;
+  }
+  return 0;
+};
+
+Game.prototype._loadoutOpenAnnouncement = function() {
+  var count = this.ls.inventory.length;
+  return 'Loadout screen. ' +
+    this.ls.player.unlockedBlasters.length + ' weapons. ' +
+    count + (count === 1 ? ' powerup stored.' : ' powerups stored.') +
+    ' Use arrow keys to navigate, Enter to select, Escape to close.';
+};
+
+Game.prototype._openLoadout = function() {
+  this.loadoutIdx = this._loadoutIndexOfEquipped();
+  this._setScreen(SCREEN_LOADOUT); // _setScreen calls clearAllInput, clearing switchPressed
+  playMenuClick();
+  announce(this._loadoutOpenAnnouncement());
+  Speech.narrate('Loadout screen open.', 'high');
+};
+
+Game.prototype._closeLoadout = function(reason) {
+  this._setScreen('game');
+  playMenuClick();
+  announce(reason);
+  Speech.narrate(reason, 'high');
+};
+
+Game.prototype._loadoutInventoryTypes = function() {
+  var seen = {};
+  var types = [];
+  var inv = this.ls ? this.ls.inventory : [];
+  for (var i = 0; i < inv.length; i++) {
+    if (!seen[inv[i]]) { seen[inv[i]] = true; types.push(inv[i]); }
+  }
+  return types;
+};
+
+Game.prototype._announceLoadoutFocus = function(weapons, invTypes) {
+  var i = this.loadoutIdx;
+  if (i < weapons.length) {
+    var name = BLASTERS[weapons[i]].name || weapons[i];
+    var equipped = weapons[i] === this.ls.player.blaster ? ' (equipped)' : '';
+    announce(name + equipped);
+    Speech.narrate(name + equipped, 'normal');
+  } else {
+    var type = invTypes[i - weapons.length];
+    var count = this.ls.inventory.filter(function(t) { return t === type; }).length;
+    var label = POWERUPS[type] ? POWERUPS[type].label : type;
+    announce(label + ', ' + count + ' stored.');
+    Speech.narrate(label + ', ' + count + '.', 'normal');
+  }
+};
+
+Game.prototype._confirmLoadoutSelection = function(weapons, invTypes) {
+  var i = this.loadoutIdx;
+  var player = this.ls.player;
+  if (i < weapons.length) {
+    player.blaster = weapons[i];
+    var name = BLASTERS[weapons[i]].name || weapons[i];
+    this._closeLoadout(name + ' equipped. Game resumed.');
+  } else {
+    var type = invTypes[i - weapons.length];
+    var idx = this.ls.inventory.indexOf(type);
+    if (idx !== -1) {
+      this.ls.inventory.splice(idx, 1);
+      this._applyPowerUp(type, player, this.ls);
+      var label = POWERUPS[type] ? POWERUPS[type].label : type;
+      this._closeLoadout(label + ' used. Game resumed.');
+    } else {
+      this._closeLoadout('Selection cancelled. Game resumed.');
+    }
+  }
+};
+
+Game.prototype._tapLoadout = function(x, y) {
+  var weapons  = this.ls.player.unlockedBlasters;
+  var invTypes = this._loadoutInventoryTypes();
+
+  // Hit-test the menu nav strip first.
+  var navBtn = hitTestMenuNav(x, y, getMenuNavButtons('udlrselback'));
+  if (navBtn) {
+    var navKey = this._menuNavKey(navBtn);
+    if (navKey) { this._handleMenuKey(navKey, false); return; }
+  }
+
+  // Cell hit-testing — replicate grid math from drawLoadoutScreen.
+  var cellSize    = 44;
+  var weaponCols  = 2;
+  var weaponStartX = CANVAS_W / 2 - weaponCols * cellSize / 2 - cellSize / 2;
+  var weaponStartY = 50;
+
+  // Weapon cells
+  for (var wi = 0; wi < weapons.length; wi++) {
+    var col = wi % weaponCols;
+    var row = Math.floor(wi / weaponCols);
+    var cx  = weaponStartX + col * (cellSize + 8) + cellSize / 2;
+    var cy  = weaponStartY + row * (cellSize + 4);
+    if (x >= cx - cellSize / 2 && x <= cx + cellSize / 2 && y >= cy && y <= cy + cellSize) {
+      this.loadoutIdx = wi;
+      this._confirmLoadoutSelection(weapons, invTypes);
+      return;
+    }
+  }
+
+  // Powerup cells
+  var powerupStartY = weaponStartY + Math.ceil(weapons.length / weaponCols) * (cellSize + 4) + 16;
+  var puCols   = 3;
+  var puStartX = CANVAS_W / 2 - puCols * cellSize / 2 - cellSize / 2 + 22;
+  for (var pi = 0; pi < invTypes.length; pi++) {
+    var pcol = pi % puCols;
+    var prow = Math.floor(pi / puCols);
+    var pcx  = puStartX + pcol * (cellSize + 4) + cellSize / 2;
+    var pcy  = powerupStartY + prow * (cellSize + 4);
+    if (x >= pcx - cellSize / 2 && x <= pcx + cellSize / 2 && y >= pcy && y <= pcy + cellSize) {
+      this.loadoutIdx = weapons.length + pi;
+      this._confirmLoadoutSelection(weapons, invTypes);
+      return;
+    }
+  }
+};
+
 /* ── Rendering ────────────────────────────────────────────────────────────── */
 
 Game.prototype.draw = function() {
@@ -906,6 +1068,7 @@ Game.prototype.draw = function() {
     case 'bossintro':     this._drawBossIntro();      break;
     case 'game':          this._drawGame();           break;
     case 'pause':         this._drawPause();          break;
+    case SCREEN_LOADOUT:  this._drawLoadout();        break;
     case 'levelcomplete': this._drawLevelComplete();  break;
     case 'gameover':      this._drawGameOver();       break;
   }
@@ -952,7 +1115,7 @@ Game.prototype._drawGame = function() {
   var cfg = LEVELS[this.gs.levelIdx], tm = this.gs.touchMode;
   drawHUD(this.ctx, player.lives, player.score, player.blaster, player.ammo,
           player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
-          this.gs.levelIdx, cfg.bgName, tm);
+          this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
   if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
   if (tm) drawTouchButtons(this.ctx, this.touchButtons);
 };
@@ -963,10 +1126,23 @@ Game.prototype._drawPause = function() {
   var cfg = LEVELS[this.gs.levelIdx], tm = this.gs.touchMode;
   drawHUD(this.ctx, player.lives, player.score, player.blaster, player.ammo,
           player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
-          this.gs.levelIdx, cfg.bgName, tm);
+          this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
   if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
   drawPauseMenu(this.ctx, this.gs.frame, this.pauseMenuIdx);
   if (tm) drawPauseTouchButtons(this.ctx, this.pauseMenuIdx);
+};
+Game.prototype._drawLoadout = function() {
+  this._drawScene();
+  if (!this.ls) return;
+  var player = this.ls.player, boss = this.ls.boss;
+  var cfg = LEVELS[this.gs.levelIdx], tm = this.gs.touchMode;
+  drawHUD(this.ctx, player.lives, player.score, player.blaster, player.ammo,
+          player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
+          this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
+  if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
+  drawLoadoutScreen(this.ctx, this.ls ? this.ls.player.unlockedBlasters : [], this.ls ? this.ls.inventory : [],
+                   this.ls ? this.ls.player.blaster : null,
+                   this.loadoutIdx, this.gs.frame, tm, this.reducedMotion);
 };
 Game.prototype._drawLevelComplete = function() {
   this._drawScene();
