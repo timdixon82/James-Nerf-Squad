@@ -36,10 +36,10 @@ function getMenuNavButtons(subset) {
     // Four equal-width buttons across the strip.
     var uw = Math.floor((bw - 10) / 4) - 3;
     return [
-      { id: 'menu-up',     label: 'UP',   x: 5,                    y: btnY, w: uw, h: btnH },
-      { id: 'menu-down',   label: 'DOWN', x: 5 + (uw + 3),         y: btnY, w: uw, h: btnH },
+      { id: 'menu-up',     label: '↑',    x: 5,                    y: btnY, w: uw, h: btnH },
+      { id: 'menu-down',   label: '↓',    x: 5 + (uw + 3),         y: btnY, w: uw, h: btnH },
       { id: 'menu-select', label: 'OK',   x: 5 + (uw + 3) * 2,     y: btnY, w: uw, h: btnH },
-      { id: 'menu-back',   label: 'BACK', x: 5 + (uw + 3) * 3,     y: btnY, w: uw, h: btnH },
+      { id: 'menu-back',   label: '✕',    x: 5 + (uw + 3) * 3,     y: btnY, w: uw, h: btnH },
     ];
   }
 
@@ -47,12 +47,12 @@ function getMenuNavButtons(subset) {
     // Six equal-width buttons.
     var sw = Math.floor((bw - 10) / 6) - 2;
     return [
-      { id: 'menu-up',     label: 'UP',   x: 5,                    y: btnY, w: sw, h: btnH },
-      { id: 'menu-down',   label: 'DOWN', x: 5 + (sw + 2),         y: btnY, w: sw, h: btnH },
-      { id: 'menu-left',   label: '<',    x: 5 + (sw + 2) * 2,     y: btnY, w: sw, h: btnH },
-      { id: 'menu-right',  label: '>',    x: 5 + (sw + 2) * 3,     y: btnY, w: sw, h: btnH },
+      { id: 'menu-up',     label: '↑',    x: 5,                    y: btnY, w: sw, h: btnH },
+      { id: 'menu-down',   label: '↓',    x: 5 + (sw + 2),         y: btnY, w: sw, h: btnH },
+      { id: 'menu-left',   label: '←',    x: 5 + (sw + 2) * 2,     y: btnY, w: sw, h: btnH },
+      { id: 'menu-right',  label: '→',    x: 5 + (sw + 2) * 3,     y: btnY, w: sw, h: btnH },
       { id: 'menu-select', label: 'OK',   x: 5 + (sw + 2) * 4,     y: btnY, w: sw, h: btnH },
-      { id: 'menu-back',   label: 'BACK', x: 5 + (sw + 2) * 5,     y: btnY, w: sw, h: btnH },
+      { id: 'menu-back',   label: '✕',    x: 5 + (sw + 2) * 5,     y: btnY, w: sw, h: btnH },
     ];
   }
 
@@ -62,7 +62,7 @@ function getMenuNavButtons(subset) {
     return [
       { id: 'menu-left',  label: 'PREV', x: 5,                  y: btnY, w: lw, h: btnH },
       { id: 'menu-right', label: 'NEXT', x: 5 + (lw + 3),       y: btnY, w: lw, h: btnH },
-      { id: 'menu-back',  label: 'BACK', x: 5 + (lw + 3) * 2,   y: btnY, w: lw, h: btnH },
+      { id: 'menu-back',  label: '✕',   x: 5 + (lw + 3) * 2,   y: btnY, w: lw, h: btnH },
     ];
   }
 
@@ -70,7 +70,7 @@ function getMenuNavButtons(subset) {
   var hw = Math.floor((bw - 10) / 2) - 3;
   return [
     { id: 'menu-select', label: 'CONTINUE', x: 5,             y: btnY, w: hw, h: btnH },
-    { id: 'menu-back',   label: 'BACK',     x: 5 + hw + 3,    y: btnY, w: hw, h: btnH },
+    { id: 'menu-back',   label: '✕',        x: 5 + hw + 3,    y: btnY, w: hw, h: btnH },
   ];
 }
 
@@ -124,19 +124,19 @@ function getTouchButtons(altLayout) {
 
   if (altLayout) {
     return [
-      { id: 'shoot',  x: 10,        y: btnY, w: 52, h: btnH, label: 'FIRE', pressed: false },
-      { id: 'switch', x: 70,        y: btnY, w: 40, h: btnH, label: 'SW',   pressed: false },
-      { id: 'left',   x: bw - 138,  y: btnY, w: 40, h: btnH, label: '<',    pressed: false },
-      { id: 'right',  x: bw - 92,   y: btnY, w: 40, h: btnH, label: '>',    pressed: false },
-      { id: 'jump',   x: bw - 46,   y: btnY, w: 40, h: btnH, label: '^',    pressed: false },
+      { id: 'shoot',  x: 10,        y: btnY, w: 52, h: btnH, label: '●', pressed: false },
+      { id: 'switch', x: 70,        y: btnY, w: 40, h: btnH, label: '⇄', pressed: false },
+      { id: 'left',   x: bw - 138,  y: btnY, w: 40, h: btnH, label: '←', pressed: false },
+      { id: 'right',  x: bw - 92,   y: btnY, w: 40, h: btnH, label: '→', pressed: false },
+      { id: 'jump',   x: bw - 46,   y: btnY, w: 40, h: btnH, label: '↑', pressed: false },
     ];
   }
   return [
-    { id: 'left',   x: 10,      y: btnY, w: 40, h: btnH, label: '<',    pressed: false },
-    { id: 'right',  x: 56,      y: btnY, w: 40, h: btnH, label: '>',    pressed: false },
-    { id: 'jump',   x: 102,     y: btnY, w: 40, h: btnH, label: '^',    pressed: false },
-    { id: 'shoot',  x: bw - 62, y: btnY, w: 52, h: btnH, label: 'FIRE', pressed: false },
-    { id: 'switch', x: bw - 120,y: btnY, w: 50, h: btnH, label: 'SW',   pressed: false },
+    { id: 'left',   x: 10,      y: btnY, w: 40, h: btnH, label: '←', pressed: false },
+    { id: 'right',  x: 56,      y: btnY, w: 40, h: btnH, label: '→', pressed: false },
+    { id: 'jump',   x: 102,     y: btnY, w: 40, h: btnH, label: '↑', pressed: false },
+    { id: 'shoot',  x: bw - 62, y: btnY, w: 52, h: btnH, label: '●', pressed: false },
+    { id: 'switch', x: bw - 120,y: btnY, w: 50, h: btnH, label: '⇄', pressed: false },
   ];
 }
 

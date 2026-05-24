@@ -459,7 +459,13 @@ Game.prototype._tapPause = function(x, y) {
   }
 };
 
-Game.prototype._goTitle    = function() { this.gs.screen = 'title'; startMusic('title'); playMenuClick(); };
+Game.prototype._goTitle = function() {
+  this.gs.screen = 'title';
+  startMusic('title');
+  playMenuClick();
+  announce("James' Nerf Squad. Press Enter or Space to start.");
+  Speech.narrate("James' Nerf Squad. Press Enter or Space to start.", 'normal');
+};
 Game.prototype._goSettings = function() { this.gs.screen = 'settings'; this.settingsIdx = 0; playMenuClick(); };
 Game.prototype._goHelp     = function() { this.gs.screen = 'help'; this.helpPage = 0; playMenuClick(); };
 Game.prototype._goCustomise = function() {
@@ -472,12 +478,23 @@ Game.prototype._goCustomise = function() {
 };
 Game.prototype._prevHelp  = function() { this.helpPage = (this.helpPage - 1 + 3) % 3; playMenuClick(); };
 Game.prototype._nextHelp  = function() { this.helpPage = (this.helpPage + 1) % 3;     playMenuClick(); };
-Game.prototype._openPause = function() { this.gs.screen = 'pause'; this.pauseMenuIdx = 0; playMenuClick(); };
-Game.prototype._resumeGame= function() { this.gs.screen = 'game'; playMenuClick(); };
+Game.prototype._openPause = function() {
+  this.gs.screen = 'pause';
+  this.pauseMenuIdx = 0;
+  playMenuClick();
+  announce('Game paused.');
+  Speech.narrate('Game paused.', 'high');
+};
+Game.prototype._resumeGame = function() {
+  this.gs.screen = 'game';
+  playMenuClick();
+  announce('Game resumed.');
+  Speech.narrate('Game resumed.', 'high');
+};
 
 Game.prototype._activateTitleItem = function(idx) {
   playMenuConfirm();
-  if (idx === 0)      { this.gs.screen = 'select'; this.selectHover = 0; startMusic('title'); }
+  if (idx === 0)      { this.gs.screen = 'select'; this.selectHover = 0; startMusic('title'); announce('Mission Select. Use Arrow Up and Down to choose a level, then press Enter.'); Speech.narrate('Mission Select.', 'normal'); }
   else if (idx === 1) { this._goCustomise(); }
   else if (idx === 2) { this._goHelp();      }
   else if (idx === 3) { this._goSettings();  }
@@ -542,15 +559,39 @@ Game.prototype.startLevel = function(idx) {
     });
   }
 
-  if (cfg.bossLevel) { playBossFanfare(); startMusic('boss'); }
-  else               { startMusic('action'); }
+  if (cfg.bossLevel) {
+    playBossFanfare();
+    startMusic('boss');
+    announce('Warning. Boss fight: ' + cfg.bossName + '.');
+    Speech.narrate('Warning. Boss fight: ' + cfg.bossName + '.', 'high');
+  } else {
+    startMusic('action');
+    announce('Level ' + (idx + 1) + ': ' + cfg.bgName + '. Lives: 3.');
+    Speech.narrate('Level ' + (idx + 1) + ': ' + cfg.bgName + '. Lives: 3.', 'normal');
+  }
+
+  // Pre-place powerups for boss levels so the player has resources from the
+  // start of the fight.  Non-boss levels rely solely on timed and drop spawns.
+  var initialPowerUps = [];
+  if (cfg.bossLevel) {
+    var bossStartTypes = ['shield', 'speed', 'ammo'];
+    for (var bpi = 0; bpi < bossStartTypes.length; bpi++) {
+      initialPowerUps.push({
+        x: rndInt(80, worldW - 80),
+        y: gY - rndInt(20, 60),
+        type: bossStartTypes[bpi],
+        alive: true,
+        bobOffset: rnd(0, Math.PI * 2),
+      });
+    }
+  }
 
   this.ls = {
     player:       player,
     enemies:      [],
     darts:        [],
     platforms:    platforms,
-    powerUps:     [],
+    powerUps:     initialPowerUps,
     boss:         cfg.bossLevel ? createBoss(idx, gY) : null,
     squadMembers: [],
     particles:    [],
@@ -573,10 +614,66 @@ Game.prototype.startLevel = function(idx) {
 };
 
 Game.prototype.start = function() {
-  startMusic('title');
   var self = this;
+
+  // WCAG 2.3.3 — Reduced-motion check.
+  // If the user has requested reduced motion, do not start the 60 fps game
+  // loop.  Instead, render the static reduced-motion screen and notify the
+  // live-region announcer and speech layer.
+  var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  this.reducedMotion = !!(mq && mq.matches);
+
+  if (this.reducedMotion) {
+    Speech.setReducedMotion(true);
+    this._drawReducedMotionOnce();
+    announce('Reduced motion mode is active. This game includes animations. To play, turn off reduced motion in your system accessibility settings.');
+    // Listen for live changes so the screen updates if the user changes the setting.
+    if (mq && mq.addEventListener) {
+      mq.addEventListener('change', function(e) {
+        self.reducedMotion = e.matches;
+        Speech.setReducedMotion(e.matches);
+        if (e.matches) {
+          cancelAnimationFrame(self.raf);
+          self.raf = 0;
+          self._drawReducedMotionOnce();
+          announce('Reduced motion mode is active. To play, turn off reduced motion in your system accessibility settings.');
+        } else {
+          // Reduced motion was turned off while on the page — start the game.
+          announce("James' Nerf Squad. Press Enter or Space to start.");
+          Speech.narrate("James' Nerf Squad. Press Enter or Space to start.", 'normal');
+          startMusic('title');
+          var loop = function() { self.update(); self.draw(); self.raf = requestAnimationFrame(loop); };
+          self.raf = requestAnimationFrame(loop);
+        }
+      });
+    }
+    return;
+  }
+
+  // Normal (non-reduced-motion) start.
+  if (mq && mq.addEventListener) {
+    mq.addEventListener('change', function(e) {
+      self.reducedMotion = e.matches;
+      Speech.setReducedMotion(e.matches);
+      if (e.matches) {
+        cancelAnimationFrame(self.raf);
+        self.raf = 0;
+        self._drawReducedMotionOnce();
+        announce('Reduced motion mode is active. To play, turn off reduced motion in your system accessibility settings.');
+      }
+    });
+  }
+
+  announce("James' Nerf Squad. Press Enter or Space to start.");
+  Speech.narrate("James' Nerf Squad. Press Enter or Space to start.", 'normal');
+  startMusic('title');
   var loop = function() { self.update(); self.draw(); self.raf = requestAnimationFrame(loop); };
   this.raf = requestAnimationFrame(loop);
+};
+
+Game.prototype._drawReducedMotionOnce = function() {
+  this.resize();
+  drawReducedMotionScreen(this.ctx);
 };
 
 Game.prototype.update = function() {
@@ -623,7 +720,10 @@ Game.prototype._updateGameplay = function() {
     ls.enemySpawnCount++;
   }
 
-  if (this.gs.frame % 400 === 0) {
+  // Spawn a powerup on a timed cadence.  Boss levels use a shorter interval
+  // (200 frames, ~3s) so the player has a steady supply during the fight.
+  var spawnInterval = cfg.bossLevel ? 200 : 400;
+  if (this.gs.frame % spawnInterval === 0) {
     var types = ['shield', 'speed', 'megadart', 'squad', 'ammo'];
     powerUps.push({
       x: ls.camX + rndInt(40, CANVAS_W - 40),
@@ -696,6 +796,8 @@ Game.prototype._updateGameplay = function() {
         player.hurt(particles);
         darts.splice(dci, 1);
         if (player.lives <= 0) { this._endGameOver(); return; }
+        announce('Hit. Lives remaining: ' + player.lives + '.');
+        Speech.narrate('Hit. Lives remaining: ' + player.lives + '.', 'normal');
       }
     }
   }
@@ -706,12 +808,16 @@ Game.prototype._updateGameplay = function() {
     if (rectOverlap(player.x, player.y, player.w, player.h, ene.x, ene.y, ene.w, ene.h)) {
       player.hurt(particles);
       if (player.lives <= 0) { this._endGameOver(); return; }
+      announce('Hit. Lives remaining: ' + player.lives + '.');
+      Speech.narrate('Hit. Lives remaining: ' + player.lives + '.', 'normal');
     }
   }
   if (boss && boss.alive) {
     if (rectOverlap(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h)) {
       player.hurt(particles);
       if (player.lives <= 0) { this._endGameOver(); return; }
+      announce('Hit. Lives remaining: ' + player.lives + '.');
+      Speech.narrate('Hit. Lives remaining: ' + player.lives + '.', 'normal');
     }
   }
 
@@ -722,6 +828,9 @@ Game.prototype._updateGameplay = function() {
       pu.alive = false;
       playPowerUp();
       this._applyPowerUp(pu.type, player, ls);
+      var label = POWERUPS[pu.type] ? POWERUPS[pu.type].label : pu.type;
+      announce(label + ' collected.');
+      Speech.narrate(label + ' collected.', 'normal');
       spawnParticles(particles, pu.x, pu.y, POWERUPS[pu.type] ? POWERUPS[pu.type].color : '#fff', 8, 2);
     }
   }
@@ -734,6 +843,8 @@ Game.prototype._updateGameplay = function() {
     ls.levelComplete = true; ls.lcTimer = 0;
     playLevelComplete();
     this.gs.completedLevels.add(this.gs.levelIdx);
+    announce('Mission complete. Press Space to continue.');
+    Speech.narrate('Mission complete. Press Space to continue.', 'normal');
     var prev = this.gs.highScores[this.gs.levelIdx] || 0;
     if (player.score > prev) this.gs.highScores[this.gs.levelIdx] = player.score;
     var nextIdx      = this.gs.levelIdx + 1;
@@ -750,7 +861,15 @@ Game.prototype._updateGameplay = function() {
   }
 };
 
-Game.prototype._endGameOver = function() { this.gs.screen = 'gameover'; this.gameOverMenuIdx = 0; playGameOver(); stopMusic(); };
+Game.prototype._endGameOver = function() {
+  this.gs.screen = 'gameover';
+  this.gameOverMenuIdx = 0;
+  playGameOver();
+  stopMusic();
+  var score = this.ls ? this.ls.player.score : 0;
+  announce('Game over. Final score: ' + score + '.');
+  Speech.narrate('Game over. Final score: ' + score + '.', 'high');
+};
 
 Game.prototype._applyPowerUp = function(type, player, ls) {
   var colors = ['#44ff88', '#ff8844', '#88aaff', '#ffff44'];
