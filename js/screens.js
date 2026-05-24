@@ -260,16 +260,21 @@ function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame)
 
 /* ── Pause Menu ─────────────────────────────────────────────────────────── */
 
-function drawPauseMenu(ctx, frame, pauseMenuIdx) {
+function drawPauseMenu(ctx, frame, pauseMenuIdx, autoUsePowerups) {
   ctx.fillStyle = 'rgba(0,0,0,0.72)'; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  var panW = 220, panH = 120;
+  var panW = 240, panH = 152;
   var panX = CANVAS_W / 2 - panW / 2, panY = CANVAS_H / 2 - panH / 2;
   ctx.fillStyle = '#0a0a2a'; roundRect(ctx, panX, panY, panW, panH, 8); ctx.fill();
   ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 2; roundRect(ctx, panX, panY, panW, panH, 8); ctx.stroke();
   px(ctx, 'PAUSED', CANVAS_W / 2, panY + 12, 8, '#ffff00', 'center');
 
-  var labels = ['RESUME', 'EXIT TO MENU'];
-  for (var i = 0; i < labels.length; i++) {
+  // Item 0: RESUME, Item 1: AUTO POWERUPS toggle, Item 2: EXIT TO MENU
+  var items = [
+    { label: 'RESUME' },
+    { label: 'AUTO POWERUPS: ' + (autoUsePowerups ? 'ON ' : 'OFF'), hint: 'SHIFT' },
+    { label: 'EXIT TO MENU' },
+  ];
+  for (var i = 0; i < items.length; i++) {
     var iy    = panY + 44 + i * 28;
     var sel   = pauseMenuIdx === i;
     var flash = sel && Math.floor(frame / 12) % 2 === 0;
@@ -277,9 +282,10 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx) {
     ctx.fillRect(panX + 10, iy - 4, panW - 20, 20);
     if (sel) { ctx.strokeStyle = flash ? '#ffff00' : '#ff8800'; ctx.lineWidth = 1.5; ctx.strokeRect(panX + 10, iy - 4, panW - 20, 20); }
     if (sel) px(ctx, '>', panX + 18, iy, 6, flash ? '#ffff00' : '#ff8800');
-    px(ctx, labels[i], CANVAS_W / 2, iy, 6, sel ? (flash ? '#ffff00' : '#fff') : '#aaa', 'center');
+    var col = sel ? (flash ? '#ffff00' : '#fff') : '#aaa';
+    px(ctx, items[i].label, CANVAS_W / 2, iy, 6, col, 'center');
   }
-  px(ctx, 'UP/DOWN  ENTER SELECT', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
+  px(ctx, 'UP/DOWN  ENTER SELECT  SHIFT=TOGGLE AUTO', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
 }
 
 /* ── Reduced Motion ─────────────────────────────────────────────────────── */
@@ -307,9 +313,9 @@ function drawReducedMotionScreen(ctx) {
   }
 }
 
-/* ── Loadout ────────────────────────────────────────────────────────────── */
+/* ── Inventory ──────────────────────────────────────────────────────────── */
 
-function drawLoadoutScreen(ctx, weaponKeys, inventory, currentBlaster, highlightIdx, frame, touchMode, reducedMotion) {
+function drawInventoryScreen(ctx, weaponKeys, inventory, currentBlaster, highlightIdx, frame, touchMode, reducedMotion) {
 
   // Compute unique inventory types with counts
   var typeCounts = {};
@@ -323,7 +329,7 @@ function drawLoadoutScreen(ctx, weaponKeys, inventory, currentBlaster, highlight
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
   // Title
-  px(ctx, 'LOADOUT', CANVAS_W / 2, 12, 8, '#ffff44', 'center');
+  px(ctx, 'INVENTORY', CANVAS_W / 2, 12, 8, '#ffff44', 'center');
   px(ctx, 'SELECT WEAPON OR USE A POWERUP', CANVAS_W / 2, 26, 4, '#aaaaaa', 'center');
 
   // --- WEAPONS SECTION ---
@@ -402,7 +408,7 @@ function drawLoadoutScreen(ctx, weaponKeys, inventory, currentBlaster, highlight
 
   // Footer instructions
   var footerY = CANVAS_H - (touchMode ? 86 : 16);
-  px(ctx, touchMode ? 'TAP TO SELECT   BACK = CANCEL' : 'ARROWS: NAVIGATE   ENTER: SELECT   ESC/SHIFT: CANCEL',
+  px(ctx, touchMode ? 'TAP TO SELECT   BACK = CANCEL' : 'ARROWS: NAVIGATE   ENTER: SELECT   ESC/SHIFT: CLOSE',
      CANVAS_W / 2, footerY, 3, '#888888', 'center');
 
   // Touch nav strip
@@ -425,7 +431,7 @@ function drawHelpScreen(ctx, page, frame) {
       ['MOVE',         'LEFT/RIGHT or A/D'],
       ['JUMP',         'UP or W'],
       ['SHOOT',        'SPACE'],
-      ['LOADOUT',      'SHIFT (see page 4)'],
+      ['INVENTORY',    'SHIFT (see page 4)'],
       ['PAUSE',        'ESC'],
     ];
     for (var ci = 0; ci < controls.length; ci++) {
@@ -500,19 +506,20 @@ function drawHelpScreen(ctx, page, frame) {
     }
 
   } else if (page === 3) {
-    px(ctx, 'LOADOUT', CANVAS_W / 2, 28, 6, '#ff8800', 'center');
+    px(ctx, 'INVENTORY', CANVAS_W / 2, 28, 6, '#ff8800', 'center');
     var ldLines = [
-      { text: 'Powerups are stored when collected.',      y: 52,  col: '#ffffff' },
-      { text: 'They are not applied straight away.',      y: 66,  col: '#aaaaaa' },
+      { text: 'By default, powerups are stored when',     y: 52,  col: '#ffffff' },
+      { text: 'collected (manual mode).',                  y: 66,  col: '#aaaaaa' },
       { text: 'Up to 20 powerups can be stored.',         y: 88,  col: '#aaffaa' },
-      { text: 'Press Shift to open the Loadout screen.',  y: 110, col: '#ffffff' },
+      { text: 'Press Shift to open the Inventory screen.',y: 110, col: '#ffffff' },
       { text: 'The game pauses while the screen is open.',y: 124, col: '#aaaaaa' },
-      { text: 'On the Loadout screen:',                   y: 146, col: '#ffff44' },
+      { text: 'On the Inventory screen:',                 y: 146, col: '#ffff44' },
       { text: 'Choose a weapon to equip it.',             y: 160, col: '#aaaaaa' },
       { text: 'Choose a stored powerup to use it.',       y: 174, col: '#aaaaaa' },
       { text: 'Press Escape or Shift to close',           y: 196, col: '#ffffff' },
       { text: 'without using anything.',                  y: 210, col: '#aaaaaa' },
-      { text: 'On touch: tap a cell or tap Back.',        y: 232, col: '#888888' },
+      { text: 'Pause menu: toggle Auto powerups ON/OFF.', y: 228, col: '#88ffff' },
+      { text: 'On touch: tap a cell or tap Back.',        y: 242, col: '#888888' },
     ];
     for (var li = 0; li < ldLines.length; li++) {
       px(ctx, ldLines[li].text, CANVAS_W / 2, ldLines[li].y, 4, ldLines[li].col, 'center');

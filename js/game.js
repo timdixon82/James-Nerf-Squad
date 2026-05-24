@@ -5,7 +5,7 @@
  * input, and calls the render and logic modules.
  */
 
-var SCREEN_LOADOUT = 'select-loadout';
+var SCREEN_INVENTORY = 'select-inventory';
 
 function Game(canvas) {
   this.canvas = canvas;
@@ -44,7 +44,7 @@ function Game(canvas) {
   this.hairIdx         = 0;
   this.clothIdx        = 0;
   this.helpPage        = 0;
-  this.loadoutIdx      = 0;
+  this.inventoryIdx    = 0;
 
   this.raf        = 0;
   this.pixelScale = 1;
@@ -231,7 +231,7 @@ Game.prototype._dispatchTap = function(x, y, isTouch) {
     case 'settings':     this._tapSettings(x, y);     break;
     case 'bossintro':    this._tapBossIntro(x, y);    break;
     case 'levelcomplete':  this._tapLevelComplete(x, y); break;
-    case SCREEN_LOADOUT:   this._tapLoadout(x, y);       break;
+    case SCREEN_INVENTORY: this._tapInventory(x, y);      break;
     case 'game':
       if (isTouch) {
         for (var i = 0; i < this.touchButtons.length; i++) {
@@ -313,9 +313,10 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
     }
 
     case 'pause':
-      if (key === 'ArrowUp'   || key === 'w' || key === 'W') { this.pauseMenuIdx = (this.pauseMenuIdx - 1 + 2) % 2; playMenuClick(); }
-      else if (key === 'ArrowDown' || key === 's' || key === 'S') { this.pauseMenuIdx = (this.pauseMenuIdx + 1) % 2; playMenuClick(); }
+      if (key === 'ArrowUp'   || key === 'w' || key === 'W') { this.pauseMenuIdx = (this.pauseMenuIdx - 1 + 3) % 3; playMenuClick(); }
+      else if (key === 'ArrowDown' || key === 's' || key === 'S') { this.pauseMenuIdx = (this.pauseMenuIdx + 1) % 3; playMenuClick(); }
       else if (key === 'Enter' || key === ' ')            this._activatePauseItem(this.pauseMenuIdx);
+      else if (key === k.switch)                          this._toggleAutoUsePowerups();
       else if (key === 'Escape' || key === k.pause || key === 'p') this._resumeGame();
       break;
 
@@ -331,22 +332,22 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
       if (key === ' ' || key === 'Enter') this._nextLevel();
       break;
 
-    case SCREEN_LOADOUT: {
+    case SCREEN_INVENTORY: {
       var weapons  = this.ls.player.unlockedBlasters;
-      var invTypes = this._loadoutInventoryTypes();
+      var invTypes = this._inventoryTypes();
       var totalCells = weapons.length + invTypes.length;
       if (key === 'Escape' || key === k.switch) {
-        this._closeLoadout('Selection cancelled. Game resumed.');
+        this._closeInventory('Selection cancelled. Game resumed.');
       } else if (key === 'ArrowRight' || key === 'ArrowDown') {
-        this.loadoutIdx = (this.loadoutIdx + 1) % totalCells;
+        this.inventoryIdx = (this.inventoryIdx + 1) % totalCells;
         playMenuClick();
-        this._announceLoadoutFocus(weapons, invTypes);
+        this._announceInventoryFocus(weapons, invTypes);
       } else if (key === 'ArrowLeft' || key === 'ArrowUp') {
-        this.loadoutIdx = (this.loadoutIdx - 1 + totalCells) % totalCells;
+        this.inventoryIdx = (this.inventoryIdx - 1 + totalCells) % totalCells;
         playMenuClick();
-        this._announceLoadoutFocus(weapons, invTypes);
+        this._announceInventoryFocus(weapons, invTypes);
       } else if (key === 'Enter') {
-        this._confirmLoadoutSelection(weapons, invTypes);
+        this._confirmInventorySelection(weapons, invTypes);
       }
       break;
     }
@@ -470,14 +471,17 @@ Game.prototype._tapLevelComplete = function(x, y) {
   this._handleMenuKey(' ', false);
 };
 Game.prototype._tapPause = function(x, y) {
-  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 44, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
-  var bw = CANVAS_W;
+  // Touch strip buttons (touch mode only): RESUME | AUTO | EXIT
+  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 44, btnY2 = stripTop + Math.floor((TOUCH_HUD_H - btnH) / 2);
+  var third = Math.floor((CANVAS_W - 28) / 3);
   if (y >= btnY2 && y <= btnY2 + btnH) {
-    if (x >= 10       && x <= bw / 2 - 6) { this._activatePauseItem(0); return; }
-    if (x >= bw / 2 + 6)                  { this._activatePauseItem(1); return; }
+    if (x >= 8                   && x <= 8 + third)              { this._activatePauseItem(0); return; }
+    if (x >= 8 + third + 6       && x <= 8 + third * 2 + 6)      { this._activatePauseItem(1); return; }
+    if (x >= 8 + (third + 6) * 2 && x <= 8 + (third + 6) * 2 + third) { this._activatePauseItem(2); return; }
   }
-  var panW = 220, panH = 120, panX = CANVAS_W / 2 - panW / 2, panY = CANVAS_H / 2 - panH / 2;
-  for (var i = 0; i < 2; i++) {
+  // Keyboard-equivalent panel hit-testing
+  var panW = 240, panH = 152, panX = CANVAS_W / 2 - panW / 2, panY = CANVAS_H / 2 - panH / 2;
+  for (var i = 0; i < 3; i++) {
     var iy = panY + 44 + i * 28;
     if (x >= panX + 10 && x <= panX + panW - 10 && y >= iy - 4 && y <= iy + 16) { this._activatePauseItem(i); return; }
   }
@@ -516,6 +520,15 @@ Game.prototype._resumeGame = function() {
   Speech.narrate('Game resumed.', 'high');
 };
 
+Game.prototype._toggleAutoUsePowerups = function() {
+  if (!this.ls) return;
+  this.ls.autoUsePowerups = !this.ls.autoUsePowerups;
+  playMenuClick();
+  var msg = this.ls.autoUsePowerups ? 'Auto powerups on.' : 'Auto powerups off.';
+  announce(msg);
+  Speech.narrate(msg, 'normal');
+};
+
 Game.prototype._activateTitleItem = function(idx) {
   playMenuConfirm();
   if (idx === 0)      { this._setScreen('select'); this.selectHover = 0; startMusic('title'); announce('Mission Select. Use Arrow Up and Down to choose a level, then press Enter.'); Speech.narrate('Mission Select.', 'normal'); }
@@ -526,8 +539,9 @@ Game.prototype._activateTitleItem = function(idx) {
 };
 Game.prototype._activatePauseItem = function(idx) {
   playMenuConfirm();
-  if (idx === 0) this._resumeGame();
-  else           { this._setScreen('title'); startMusic('title'); this.ls = null; }
+  if (idx === 0)      this._resumeGame();
+  else if (idx === 1) this._toggleAutoUsePowerups();
+  else                { this._setScreen('title'); startMusic('title'); this.ls = null; }
 };
 Game.prototype._activateGameOverItem = function(idx) {
   playMenuConfirm();
@@ -620,6 +634,7 @@ Game.prototype.startLevel = function(idx) {
     squadMembers: [],
     particles:    [],
     inventory:    [],
+    autoUsePowerups: false,
     camX:         0,
     worldW:       worldW,
     groundY:      gY,
@@ -716,6 +731,9 @@ Game.prototype.update = function() {
     this.ls.bossIntroTimer--;
     if (this.ls.bossIntroTimer <= 0) this._setScreen('game');
   }
+  // Gameplay logic only runs when the active-play screen is shown.
+  // 'pause', SCREEN_INVENTORY, and all menu screens are intentionally
+  // excluded so enemies, timers, and powerup spawns freeze during those screens.
   if (screen === 'game' && this.ls) this._updateGameplay();
 
   Input.clearOneShots();
@@ -736,7 +754,7 @@ Game.prototype._updateGameplay = function() {
 
   if (ls.bossIntroTimer > 0) return;
 
-  if (inp.switchPressed) { this._openLoadout(); return; }
+  if (inp.switchPressed) { this._openInventory(); return; }
   if (inp.shoot || inp.shootPressed) player.shoot(darts);
   player.update(inp, platforms, ls.groundY);
 
@@ -858,7 +876,13 @@ Game.prototype._updateGameplay = function() {
       pu.alive = false;
       playPowerUp();
       var label = POWERUPS[pu.type] ? POWERUPS[pu.type].label : pu.type;
-      if (ls.inventory.length < 20) {
+      if (ls.autoUsePowerups) {
+        // Auto-use: apply the powerup immediately, bypassing inventory.
+        this._applyPowerUp(pu.type, player, ls);
+        var autoMsg = 'Auto-used: ' + label + '.';
+        announce(autoMsg);
+        Speech.narrate(autoMsg, 'normal');
+      } else if (ls.inventory.length < 20) {
         ls.inventory.push(pu.type);
         var typeCount = 0;
         for (var ci = 0; ci < ls.inventory.length; ci++) {
@@ -932,9 +956,9 @@ Game.prototype._applyPowerUp = function(type, player, ls) {
   }
 };
 
-/* ── Loadout screen ──────────────────────────────────────────────────────── */
+/* ── Inventory screen ────────────────────────────────────────────────────── */
 
-Game.prototype._loadoutIndexOfEquipped = function() {
+Game.prototype._inventoryIndexOfEquipped = function() {
   var blasters = this.ls.player.unlockedBlasters;
   for (var i = 0; i < blasters.length; i++) {
     if (blasters[i] === this.ls.player.blaster) return i;
@@ -942,30 +966,30 @@ Game.prototype._loadoutIndexOfEquipped = function() {
   return 0;
 };
 
-Game.prototype._loadoutOpenAnnouncement = function() {
+Game.prototype._inventoryOpenAnnouncement = function() {
   var count = this.ls.inventory.length;
-  return 'Loadout screen. ' +
+  return 'Inventory screen. ' +
     this.ls.player.unlockedBlasters.length + ' weapons. ' +
     count + (count === 1 ? ' powerup stored.' : ' powerups stored.') +
     ' Use arrow keys to navigate, Enter to select, Escape to close.';
 };
 
-Game.prototype._openLoadout = function() {
-  this.loadoutIdx = this._loadoutIndexOfEquipped();
-  this._setScreen(SCREEN_LOADOUT); // _setScreen calls clearAllInput, clearing switchPressed
+Game.prototype._openInventory = function() {
+  this.inventoryIdx = this._inventoryIndexOfEquipped();
+  this._setScreen(SCREEN_INVENTORY); // _setScreen calls clearAllInput, clearing switchPressed
   playMenuClick();
-  announce(this._loadoutOpenAnnouncement());
-  Speech.narrate('Loadout screen open.', 'high');
+  announce(this._inventoryOpenAnnouncement());
+  Speech.narrate('Inventory screen open.', 'high');
 };
 
-Game.prototype._closeLoadout = function(reason) {
+Game.prototype._closeInventory = function(reason) {
   this._setScreen('game');
   playMenuClick();
   announce(reason);
   Speech.narrate(reason, 'high');
 };
 
-Game.prototype._loadoutInventoryTypes = function() {
+Game.prototype._inventoryTypes = function() {
   var seen = {};
   var types = [];
   var inv = this.ls ? this.ls.inventory : [];
@@ -975,8 +999,8 @@ Game.prototype._loadoutInventoryTypes = function() {
   return types;
 };
 
-Game.prototype._announceLoadoutFocus = function(weapons, invTypes) {
-  var i = this.loadoutIdx;
+Game.prototype._announceInventoryFocus = function(weapons, invTypes) {
+  var i = this.inventoryIdx;
   if (i < weapons.length) {
     var name = BLASTERS[weapons[i]].name || weapons[i];
     var equipped = weapons[i] === this.ls.player.blaster ? ' (equipped)' : '';
@@ -991,13 +1015,13 @@ Game.prototype._announceLoadoutFocus = function(weapons, invTypes) {
   }
 };
 
-Game.prototype._confirmLoadoutSelection = function(weapons, invTypes) {
-  var i = this.loadoutIdx;
+Game.prototype._confirmInventorySelection = function(weapons, invTypes) {
+  var i = this.inventoryIdx;
   var player = this.ls.player;
   if (i < weapons.length) {
     player.blaster = weapons[i];
     var name = BLASTERS[weapons[i]].name || weapons[i];
-    this._closeLoadout(name + ' equipped. Game resumed.');
+    this._closeInventory(name + ' equipped. Game resumed.');
   } else {
     var type = invTypes[i - weapons.length];
     var idx = this.ls.inventory.indexOf(type);
@@ -1005,16 +1029,16 @@ Game.prototype._confirmLoadoutSelection = function(weapons, invTypes) {
       this.ls.inventory.splice(idx, 1);
       this._applyPowerUp(type, player, this.ls);
       var label = POWERUPS[type] ? POWERUPS[type].label : type;
-      this._closeLoadout(label + ' used. Game resumed.');
+      this._closeInventory(label + ' used. Game resumed.');
     } else {
-      this._closeLoadout('Selection cancelled. Game resumed.');
+      this._closeInventory('Selection cancelled. Game resumed.');
     }
   }
 };
 
-Game.prototype._tapLoadout = function(x, y) {
+Game.prototype._tapInventory = function(x, y) {
   var weapons  = this.ls.player.unlockedBlasters;
-  var invTypes = this._loadoutInventoryTypes();
+  var invTypes = this._inventoryTypes();
 
   // Hit-test the menu nav strip first.
   var navBtn = hitTestMenuNav(x, y, getMenuNavButtons('udlrselback'));
@@ -1023,7 +1047,7 @@ Game.prototype._tapLoadout = function(x, y) {
     if (navKey) { this._handleMenuKey(navKey, false); return; }
   }
 
-  // Cell hit-testing — replicate grid math from drawLoadoutScreen.
+  // Cell hit-testing — replicate grid math from drawInventoryScreen.
   var cellSize    = 44;
   var weaponCols  = 2;
   var weaponStartX = CANVAS_W / 2 - weaponCols * cellSize / 2 - cellSize / 2;
@@ -1036,8 +1060,8 @@ Game.prototype._tapLoadout = function(x, y) {
     var cx  = weaponStartX + col * (cellSize + 8) + cellSize / 2;
     var cy  = weaponStartY + row * (cellSize + 4);
     if (x >= cx - cellSize / 2 && x <= cx + cellSize / 2 && y >= cy && y <= cy + cellSize) {
-      this.loadoutIdx = wi;
-      this._confirmLoadoutSelection(weapons, invTypes);
+      this.inventoryIdx = wi;
+      this._confirmInventorySelection(weapons, invTypes);
       return;
     }
   }
@@ -1052,8 +1076,8 @@ Game.prototype._tapLoadout = function(x, y) {
     var pcx  = puStartX + pcol * (cellSize + 4) + cellSize / 2;
     var pcy  = powerupStartY + prow * (cellSize + 4);
     if (x >= pcx - cellSize / 2 && x <= pcx + cellSize / 2 && y >= pcy && y <= pcy + cellSize) {
-      this.loadoutIdx = weapons.length + pi;
-      this._confirmLoadoutSelection(weapons, invTypes);
+      this.inventoryIdx = weapons.length + pi;
+      this._confirmInventorySelection(weapons, invTypes);
       return;
     }
   }
@@ -1073,7 +1097,7 @@ Game.prototype.draw = function() {
     case 'bossintro':     this._drawBossIntro();      break;
     case 'game':          this._drawGame();           break;
     case 'pause':         this._drawPause();          break;
-    case SCREEN_LOADOUT:  this._drawLoadout();        break;
+    case SCREEN_INVENTORY: this._drawInventory();      break;
     case 'levelcomplete': this._drawLevelComplete();  break;
     case 'gameover':      this._drawGameOver();       break;
   }
@@ -1133,10 +1157,10 @@ Game.prototype._drawPause = function() {
           player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
           this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
   if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
-  drawPauseMenu(this.ctx, this.gs.frame, this.pauseMenuIdx);
+  drawPauseMenu(this.ctx, this.gs.frame, this.pauseMenuIdx, this.ls ? this.ls.autoUsePowerups : false);
   if (tm) drawPauseTouchButtons(this.ctx, this.pauseMenuIdx);
 };
-Game.prototype._drawLoadout = function() {
+Game.prototype._drawInventory = function() {
   this._drawScene();
   if (!this.ls) return;
   var player = this.ls.player, boss = this.ls.boss;
@@ -1145,9 +1169,9 @@ Game.prototype._drawLoadout = function() {
           player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
           this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
   if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
-  drawLoadoutScreen(this.ctx, this.ls ? this.ls.player.unlockedBlasters : [], this.ls ? this.ls.inventory : [],
-                   this.ls ? this.ls.player.blaster : null,
-                   this.loadoutIdx, this.gs.frame, tm, this.reducedMotion);
+  drawInventoryScreen(this.ctx, this.ls ? this.ls.player.unlockedBlasters : [], this.ls ? this.ls.inventory : [],
+                      this.ls ? this.ls.player.blaster : null,
+                      this.inventoryIdx, this.gs.frame, tm, this.reducedMotion);
 };
 Game.prototype._drawLevelComplete = function() {
   this._drawScene();
