@@ -173,11 +173,13 @@ function drawGameOverTouchButtons(ctx, menuIdx) {
 function drawPauseTouchButtons(ctx, pauseMenuIdx) {
   var bw = CANVAS_W, stripTop = CANVAS_H - TOUCH_HUD_H;
   var btnH = 44, btnY = stripTop + Math.floor((TOUCH_HUD_H - btnH) / 2);
+  var third = Math.floor((bw - 28) / 3);
   var buttons = [
-    { label: 'RESUME', x: 10,         w: bw / 2 - 16, selected: pauseMenuIdx === 0 },
-    { label: 'EXIT',   x: bw / 2 + 6, w: bw / 2 - 16, selected: pauseMenuIdx === 1 },
+    { label: 'RESUME', x: 8,                    w: third,     selected: pauseMenuIdx === 0 },
+    { label: 'AUTO',   x: 8 + third + 6,        w: third,     selected: pauseMenuIdx === 1 },
+    { label: 'EXIT',   x: 8 + (third + 6) * 2,  w: third,     selected: pauseMenuIdx === 2 },
   ];
-  _drawMenuTouchStrip(ctx, buttons, stripTop, btnY, btnH, 8);
+  _drawMenuTouchStrip(ctx, buttons, stripTop, btnY, btnH, 7);
 }
 
 function _drawMenuTouchStrip(ctx, buttons, stripTop, btnY, btnH, fontSize) {  /* btnH is always 44 px now */
