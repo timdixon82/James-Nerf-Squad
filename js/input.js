@@ -80,6 +80,39 @@ var Input = (function () {
     if (id === 'shoot') { touchHeld['shoot'] = false; state.shoot = false; }
   }
 
+  // WCAG 2.1.1 / 2.1.3 — Keys-sticking fix.
+  // When the window loses focus, keyup events stop firing and the held map
+  // retains stale true values, causing the player to move as if keys are
+  // physically stuck.  Three listeners clear both held maps and reset the
+  // movement state whenever focus leaves the page.
+
+  window.addEventListener('blur', function() {
+    var k;
+    for (k in held) held[k] = false;
+    for (k in touchHeld) touchHeld[k] = false;
+    state.left = false; state.right = false;
+    state.jump = false; state.shoot = false;
+  });
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+      var k;
+      for (k in held) held[k] = false;
+      for (k in touchHeld) touchHeld[k] = false;
+      state.left = false; state.right = false;
+      state.jump = false; state.shoot = false;
+    }
+  });
+
+  // touchcancel fires when a touch is interrupted by a system event
+  // (phone call, notification pull-down, etc.).
+  window.addEventListener('touchcancel', function() {
+    var k;
+    for (k in touchHeld) touchHeld[k] = false;
+    state.left = false; state.right = false;
+    state.jump = false; state.shoot = false;
+  });
+
   return {
     held: held,
     state: state,

@@ -282,6 +282,31 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx) {
   px(ctx, 'UP/DOWN  ENTER SELECT', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
 }
 
+/* ── Reduced Motion ─────────────────────────────────────────────────────── */
+
+/**
+ * drawReducedMotionScreen(ctx)
+ * WCAG 2.3.3 — shown when prefers-reduced-motion: reduce is active.
+ * Renders a static, screen-reader-friendly message on the canvas.
+ */
+function drawReducedMotionScreen(ctx) {
+  ctx.fillStyle = '#050514';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  px(ctx, "JAMES' NERF SQUAD", CANVAS_W / 2, 60, 8, '#ffff00', 'center');
+
+  var lines = [
+    { text: 'Reduced motion mode is active on this device.', y: 108, size: 5, color: '#ffffff' },
+    { text: 'This game includes scrolling backgrounds',       y: 128, size: 4, color: '#aaaaaa' },
+    { text: 'and animations.',                               y: 142, size: 4, color: '#aaaaaa' },
+    { text: 'To play, turn off reduced motion in your',      y: 162, size: 4, color: '#aaaaaa' },
+    { text: 'system accessibility settings.',                y: 176, size: 4, color: '#aaaaaa' },
+  ];
+  for (var i = 0; i < lines.length; i++) {
+    px(ctx, lines[i].text, CANVAS_W / 2, lines[i].y, lines[i].size, lines[i].color, 'center');
+  }
+}
+
 /* ── Help ───────────────────────────────────────────────────────────────── */
 
 function drawHelpScreen(ctx, page, frame) {
