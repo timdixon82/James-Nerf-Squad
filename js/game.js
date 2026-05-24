@@ -332,7 +332,7 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
       break;
 
     case SCREEN_LOADOUT: {
-      var weapons  = Object.keys(BLASTERS);
+      var weapons  = this.ls.player.unlockedBlasters;
       var invTypes = this._loadoutInventoryTypes();
       var totalCells = weapons.length + invTypes.length;
       if (key === 'Escape' || key === k.switch) {
@@ -930,7 +930,7 @@ Game.prototype._applyPowerUp = function(type, player, ls) {
 /* ── Loadout screen ──────────────────────────────────────────────────────── */
 
 Game.prototype._loadoutIndexOfEquipped = function() {
-  var blasters = Object.keys(BLASTERS);
+  var blasters = this.ls.player.unlockedBlasters;
   for (var i = 0; i < blasters.length; i++) {
     if (blasters[i] === this.ls.player.blaster) return i;
   }
@@ -940,7 +940,7 @@ Game.prototype._loadoutIndexOfEquipped = function() {
 Game.prototype._loadoutOpenAnnouncement = function() {
   var count = this.ls.inventory.length;
   return 'Loadout screen. ' +
-    Object.keys(BLASTERS).length + ' weapons. ' +
+    this.ls.player.unlockedBlasters.length + ' weapons. ' +
     count + (count === 1 ? ' powerup stored.' : ' powerups stored.') +
     ' Use arrow keys to navigate, Enter to select, Escape to close.';
 };
@@ -1008,7 +1008,7 @@ Game.prototype._confirmLoadoutSelection = function(weapons, invTypes) {
 };
 
 Game.prototype._tapLoadout = function(x, y) {
-  var weapons  = Object.keys(BLASTERS);
+  var weapons  = this.ls.player.unlockedBlasters;
   var invTypes = this._loadoutInventoryTypes();
 
   // Hit-test the menu nav strip first.
@@ -1022,7 +1022,7 @@ Game.prototype._tapLoadout = function(x, y) {
   var cellSize    = 44;
   var weaponCols  = 2;
   var weaponStartX = CANVAS_W / 2 - weaponCols * cellSize / 2 - cellSize / 2;
-  var weaponStartY = 68;
+  var weaponStartY = 50;
 
   // Weapon cells
   for (var wi = 0; wi < weapons.length; wi++) {
@@ -1140,7 +1140,7 @@ Game.prototype._drawLoadout = function() {
           player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
           this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
   if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
-  drawLoadoutScreen(this.ctx, BLASTERS, this.ls ? this.ls.inventory : [],
+  drawLoadoutScreen(this.ctx, this.ls ? this.ls.player.unlockedBlasters : [], this.ls ? this.ls.inventory : [],
                    this.ls ? this.ls.player.blaster : null,
                    this.loadoutIdx, this.gs.frame, tm, this.reducedMotion);
 };

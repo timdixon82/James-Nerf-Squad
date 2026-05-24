@@ -309,8 +309,7 @@ function drawReducedMotionScreen(ctx) {
 
 /* ── Loadout ────────────────────────────────────────────────────────────── */
 
-function drawLoadoutScreen(ctx, blasters, inventory, currentBlaster, highlightIdx, frame, touchMode, reducedMotion) {
-  var weaponKeys = Object.keys(blasters);
+function drawLoadoutScreen(ctx, weaponKeys, inventory, currentBlaster, highlightIdx, frame, touchMode, reducedMotion) {
 
   // Compute unique inventory types with counts
   var typeCounts = {};
@@ -354,13 +353,13 @@ function drawLoadoutScreen(ctx, blasters, inventory, currentBlaster, highlightId
       ctx.strokeRect(cx - cellSize / 2, cy, cellSize, cellSize);
     }
 
-    var blasterData = blasters[weaponKeys[wi]];
+    var blasterData = BLASTERS[weaponKeys[wi]];
     var wColor = blasterData.color || '#ffffff';
     px(ctx, blasterData.name ? blasterData.name.toUpperCase() : weaponKeys[wi].toUpperCase(), cx, cy + 13, 3, wColor, 'center');
     if (isEquipped) {
       px(ctx, 'EQUIPPED', cx, cy + 24, 3, '#44ff44', 'center');
     }
-    var ammoStr = 'AMO:' + blasterData.ammo;
+    var ammoStr = 'AMMO:' + blasterData.ammo;
     px(ctx, ammoStr, cx, cy + 35, 3, '#aaaaaa', 'center');
   }
 
