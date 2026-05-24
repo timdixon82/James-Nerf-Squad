@@ -219,12 +219,15 @@ Game.prototype._bindEvents = function() {
 
 Game.prototype._dispatchTap = function(x, y, isTouch) {
   switch (this.gs.screen) {
-    case 'title':     this._tapTitle(x, y);     break;
-    case 'customise': this._tapCustomise(x, y); break;
-    case 'gameover':  this._tapGameOver(x, y);  break;
-    case 'help':      this._tapHelp(x, y);      break;
-    case 'select':    this._tapSelect(x, y);    break;
-    case 'pause':     this._tapPause(x, y);     break;
+    case 'title':        this._tapTitle(x, y);        break;
+    case 'customise':    this._tapCustomise(x, y);    break;
+    case 'gameover':     this._tapGameOver(x, y);     break;
+    case 'help':         this._tapHelp(x, y);         break;
+    case 'select':       this._tapSelect(x, y);       break;
+    case 'pause':        this._tapPause(x, y);        break;
+    case 'settings':     this._tapSettings(x, y);     break;
+    case 'bossintro':    this._tapBossIntro(x, y);    break;
+    case 'levelcomplete':this._tapLevelComplete(x, y);break;
     case 'game':
       if (isTouch) {
         for (var i = 0; i < this.touchButtons.length; i++) {
@@ -332,7 +335,26 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
   }
 };
 
+/**
+ * Translate a menu nav strip button id to the key string that
+ * _handleMenuKey understands.  Returns null if id is not a menu nav id.
+ */
+Game.prototype._menuNavKey = function(btnId) {
+  if (btnId === 'menu-up')     return 'ArrowUp';
+  if (btnId === 'menu-down')   return 'ArrowDown';
+  if (btnId === 'menu-left')   return 'ArrowLeft';
+  if (btnId === 'menu-right')  return 'ArrowRight';
+  if (btnId === 'menu-select') return 'Enter';
+  if (btnId === 'menu-back')   return 'Escape';
+  return null;
+};
+
 Game.prototype._tapTitle = function(x, y) {
+  // Check menu nav strip first so it intercepts taps in the strip zone.
+  if (this.gs.touchMode) {
+    var navId = hitTestMenuNav(x, y, getMenuNavButtons('udselback'));
+    if (navId) { this._handleMenuKey(this._menuNavKey(navId), false); return; }
+  }
   var menuStartY = 130, menuItemH = 22;
   for (var i = 0; i < this.titleMenuCount; i++) {
     var iy = menuStartY + i * menuItemH;
@@ -340,6 +362,11 @@ Game.prototype._tapTitle = function(x, y) {
   }
 };
 Game.prototype._tapCustomise = function(x, y) {
+  // Check menu nav strip first.
+  if (this.gs.touchMode) {
+    var navId = hitTestMenuNav(x, y, getMenuNavButtons('udlrselback'));
+    if (navId) { this._handleMenuKey(this._menuNavKey(navId), false); return; }
+  }
   var rowW = SKIN_COLORS.length * 24, rowX = (CANVAS_W - rowW) / 2;
   var self = this;
   SKIN_COLORS.forEach(function(c, i) {
@@ -362,15 +389,25 @@ Game.prototype._tapGameOver = function(x, y) {
     var iy = menuStartY + i * menuItemH;
     if (y >= iy - 4 && y <= iy + 16) { this.gameOverMenuIdx = i; this._activateGameOverItem(i); return; }
   }
-  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 42, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
+  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 44, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
   var bw = CANVAS_W;
   if (y >= btnY2 && y <= btnY2 + btnH) {
     if (x >= 10       && x <= bw / 2 - 6) { this._activateGameOverItem(0); return; }
     if (x >= bw / 2 + 6)                  { this._activateGameOverItem(1); return; }
   }
 };
-Game.prototype._tapHelp    = function(x, y) { x < CANVAS_W / 2 ? this._prevHelp() : this._nextHelp(); };
-Game.prototype._tapSelect  = function(x, y) {
+Game.prototype._tapHelp = function(x, y) {
+  if (this.gs.touchMode) {
+    var navId = hitTestMenuNav(x, y, getMenuNavButtons('lrback'));
+    if (navId) { this._handleMenuKey(this._menuNavKey(navId), false); return; }
+  }
+  x < CANVAS_W / 2 ? this._prevHelp() : this._nextHelp();
+};
+Game.prototype._tapSelect = function(x, y) {
+  if (this.gs.touchMode) {
+    var navId = hitTestMenuNav(x, y, getMenuNavButtons('udlrselback'));
+    if (navId) { this._handleMenuKey(this._menuNavKey(navId), false); return; }
+  }
   var cols = 3, cellW = 130, cellH = 50, startX = 30, startY = 35;
   for (var i = 0; i < TOTAL_LEVELS; i++) {
     var col = i % cols, row = Math.floor(i / cols);
@@ -378,8 +415,38 @@ Game.prototype._tapSelect  = function(x, y) {
     if (x >= bx && x <= bx + cellW - 8 && y >= by && y <= by + cellH - 6) { this.startLevel(i); return; }
   }
 };
+Game.prototype._tapSettings = function(x, y) {
+  // Do not intercept touch during key rebinding — the user must press a physical key.
+  if (this.rebinding) return;
+  if (this.gs.touchMode) {
+    var navId = hitTestMenuNav(x, y, getMenuNavButtons('udselback'));
+    if (navId) { this._handleMenuKey(this._menuNavKey(navId), false); return; }
+  }
+  // No additional coordinate-based tap targets in settings; keyboard navigation is sufficient.
+};
+Game.prototype._tapBossIntro = function(x, y) {
+  if (this.gs.touchMode) {
+    var navId = hitTestMenuNav(x, y, getMenuNavButtons('selback'));
+    if (navId) { this._handleMenuKey(this._menuNavKey(navId), false); return; }
+  }
+  // Boss intro also accepts a tap anywhere to advance (same as pressing Enter/Space).
+  // Route to _handleMenuKey with 'Enter' which is handled generically nowhere in boss intro,
+  // but the timer already auto-advances; no explicit action needed here.
+};
+Game.prototype._tapLevelComplete = function(x, y) {
+  if (this.gs.touchMode) {
+    var navId = hitTestMenuNav(x, y, getMenuNavButtons('selback'));
+    if (navId) {
+      // 'menu-select' maps to Enter which triggers _nextLevel; 'menu-back' maps to Escape
+      // which has no binding on levelcomplete — ignore back silently on that screen.
+      this._handleMenuKey(this._menuNavKey(navId), false); return;
+    }
+  }
+  // Also allow a tap anywhere else on the screen to continue (mirrors spacebar).
+  this._handleMenuKey(' ', false);
+};
 Game.prototype._tapPause = function(x, y) {
-  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 42, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
+  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 44, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
   var bw = CANVAS_W;
   if (y >= btnY2 && y <= btnY2 + btnH) {
     if (x >= 10       && x <= bw / 2 - 6) { this._activatePauseItem(0); return; }
@@ -456,10 +523,19 @@ Game.prototype.startLevel = function(idx) {
   player.unlockedBlasters = unlockedBlasters;
 
   var platforms = [];
-  for (var i = 0; i < cfg.platformCount * 3; i++) {
+  var totalPlats = cfg.platformCount * 3;
+  // Spread platforms across three height tiers to prevent shelf stacking.
+  // Tier 0: low (35–65 px above ground), tier 1: mid (70–100 px), tier 2: high (110–145 px).
+  var tiers = [
+    { lo: 35,  hi: 65  },
+    { lo: 70,  hi: 100 },
+    { lo: 110, hi: 145 },
+  ];
+  for (var i = 0; i < totalPlats; i++) {
+    var tier = tiers[i % tiers.length];
     platforms.push({
       x: rndInt(50, worldW - 80),
-      y: gY - rndInt(35, 90),
+      y: gY - rndInt(tier.lo, tier.hi),
       w: rndInt(40, 100),
       h: TILE,
       color: cfg.groundColor,
@@ -559,7 +635,7 @@ Game.prototype._updateGameplay = function() {
   for (var ei = 0; ei < enemies.length; ei++) {
     if (enemies[ei].alive) updateEnemy(enemies[ei], player, darts, platforms, ls.groundY, particles, ls.camX);
   }
-  if (boss && boss.alive) updateBoss(boss, player, darts, platforms, ls.groundY, particles);
+  if (boss && boss.alive) updateBoss(boss, player, darts, platforms, ls.groundY, particles, ls.camX);
   for (var si = squadMembers.length - 1; si >= 0; si--) {
     updateSquadMember(squadMembers[si], player, enemies, boss, darts, platforms, ls.groundY);
     if (squadMembers[si].life <= 0) squadMembers.splice(si, 1);
@@ -721,21 +797,33 @@ Game.prototype._drawTitle = function() {
   drawStarfield(this.ctx, this.stars);
   drawTitleScreen(this.ctx, this.gs.frame, this.gs.skinColor, this.gs.hairColor, this.gs.clothColor,
                   this.titleMenuIdx, this.gs.touchMode, this.gs.touchDetected);
+  if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('udselback'));
 };
-Game.prototype._drawSelect   = function() { drawLevelSelect(this.ctx, this.gs.completedLevels, this.gs.highScores, this.selectHover, this.gs.frame); };
-Game.prototype._drawSettings = function() { drawSettings(this.ctx, this.gs.keys, this.rebinding, this.gs.altButtonLayout, this.settingsIdx, this.gs.frame); };
+Game.prototype._drawSelect = function() {
+  drawLevelSelect(this.ctx, this.gs.completedLevels, this.gs.highScores, this.selectHover, this.gs.frame);
+  if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('udlrselback'));
+};
+Game.prototype._drawSettings = function() {
+  drawSettings(this.ctx, this.gs.keys, this.rebinding, this.gs.altButtonLayout, this.settingsIdx, this.gs.frame);
+  if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('udselback'));
+};
 Game.prototype._drawCustomise = function() {
   this.ctx.fillStyle = '#050514'; this.ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
   drawStarfield(this.ctx, this.stars);
   drawCustomiseScreen(this.ctx, this.gs.skinColor, this.gs.hairColor, this.gs.clothColor,
                       this.skinIdx, this.hairIdx, this.clothIdx, this.customiseFocus, this.gs.frame);
+  if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('udlrselback'));
 };
-Game.prototype._drawHelp      = function() { drawHelpScreen(this.ctx, this.helpPage, this.gs.frame); };
+Game.prototype._drawHelp = function() {
+  drawHelpScreen(this.ctx, this.helpPage, this.gs.frame);
+  if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('lrback'));
+};
 Game.prototype._drawBossIntro = function() {
   if (this.ls) {
     this._drawScene();
     var cfg = LEVELS[this.gs.levelIdx];
     drawBossIntro(this.ctx, cfg.bossName, cfg.bossSubtitle, this.ls.bossIntroTimer);
+    if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('selback'));
   }
 };
 Game.prototype._drawGame = function() {
@@ -764,6 +852,7 @@ Game.prototype._drawPause = function() {
 Game.prototype._drawLevelComplete = function() {
   this._drawScene();
   drawLevelComplete(this.ctx, this.gs.levelIdx, this.ls.player.score, this.ls.unlockMsg, this.ls.lcTimer);
+  if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('selback'));
 };
 Game.prototype._drawGameOver = function() {
   if (this.ls) this._drawScene();
