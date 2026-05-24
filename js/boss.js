@@ -6,9 +6,14 @@
 
 function createBoss(levelIdx, groundY) {
   var type = Math.max(1, Math.min(3, Math.floor(levelIdx / 3) + 1));
+  // The first boss level (index 2) is stationary so new players can learn boss
+  // patterns before movement is added at later boss levels (indices 5 and 8).
+  var stationary = (levelIdx === 2);
+  // Place a stationary boss on the right side of the starting viewport.
+  var startX = stationary ? CANVAS_W * 0.75 : CANVAS_W * 0.6;
   return {
-    x: CANVAS_W * 0.6, y: groundY - 60,
-    vx: 1.5, vy: 0,
+    x: startX, y: groundY - 60,
+    vx: 0.75, vy: 0,
     hp: 20 + type * 10, maxHp: 20 + type * 10,
     phase:       0,
     attackTimer: 80,
@@ -21,6 +26,7 @@ function createBoss(levelIdx, groundY) {
     stompTimer: 0,
     type: type,
     anim: 0,
+    stationary: stationary,
   };
 }
 
@@ -30,7 +36,9 @@ function updateBoss(boss, player, darts, platforms, groundY, particles, camX) {
   boss.hurtTimer = Math.max(0, boss.hurtTimer - 1);
   boss.phase = boss.hp < boss.maxHp * 0.33 ? 2
              : boss.hp < boss.maxHp * 0.66 ? 1 : 0;
-  var speed = 1.2 + boss.phase * 0.6;
+  // Base speed halved from original 1.2 so the boss feels more manageable.
+  // Phase bonuses halved proportionally (was +0.6 per phase, now +0.3).
+  var speed = 0.6 + boss.phase * 0.3;
 
   // Anchor the boss roaming zone to the camera so it follows the player across the scrolling world.
   var zoneLeft  = camX + 40;
@@ -38,19 +46,23 @@ function updateBoss(boss, player, darts, platforms, groundY, particles, camX) {
 
   if (boss.type === 2) {
     boss.y  = groundY - boss.h - 60 + Math.sin(boss.anim * 0.04) * 20;
-    boss.x += boss.vx * speed;
-    if (boss.x < zoneLeft || boss.x > zoneRight) {
-      boss.vx *= -1;
-      // Clamp so the boss cannot drift permanently out of the visible zone.
-      boss.x = Math.max(zoneLeft, Math.min(zoneRight, boss.x));
+    if (!boss.stationary) {
+      boss.x += boss.vx * speed;
+      if (boss.x < zoneLeft || boss.x > zoneRight) {
+        boss.vx *= -1;
+        // Clamp so the boss cannot drift permanently out of the visible zone.
+        boss.x = Math.max(zoneLeft, Math.min(zoneRight, boss.x));
+      }
     }
   } else {
     boss.vy = clamp(boss.vy + GRAVITY, -15, 12);
-    boss.x += boss.vx * speed;
+    if (!boss.stationary) {
+      boss.x += boss.vx * speed;
+    }
     boss.y += boss.vy;
     boss.stomping = false;
     if (boss.y + boss.h >= groundY) { boss.y = groundY - boss.h; boss.vy = 0; }
-    if (boss.x < zoneLeft || boss.x > zoneRight) {
+    if (!boss.stationary && (boss.x < zoneLeft || boss.x > zoneRight)) {
       boss.vx *= -1;
       boss.dir = boss.vx > 0 ? 1 : -1;
       boss.x = Math.max(zoneLeft, Math.min(zoneRight, boss.x));
