@@ -879,7 +879,7 @@ Game.prototype._updateGameplay = function() {
       if (ls.autoUsePowerups) {
         // Auto-use: apply the powerup immediately, bypassing inventory.
         this._applyPowerUp(pu.type, player, ls);
-        var autoMsg = 'Auto-used: ' + label + '.';
+        var autoMsg = 'Auto Use: ' + label + '.';
         announce(autoMsg);
         Speech.narrate(autoMsg, 'normal');
       } else if (ls.inventory.length < 20) {
