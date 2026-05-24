@@ -389,7 +389,7 @@ Game.prototype._tapGameOver = function(x, y) {
     var iy = menuStartY + i * menuItemH;
     if (y >= iy - 4 && y <= iy + 16) { this.gameOverMenuIdx = i; this._activateGameOverItem(i); return; }
   }
-  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 42, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
+  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 44, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
   var bw = CANVAS_W;
   if (y >= btnY2 && y <= btnY2 + btnH) {
     if (x >= 10       && x <= bw / 2 - 6) { this._activateGameOverItem(0); return; }
@@ -446,7 +446,7 @@ Game.prototype._tapLevelComplete = function(x, y) {
   this._handleMenuKey(' ', false);
 };
 Game.prototype._tapPause = function(x, y) {
-  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 42, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
+  var stripTop = CANVAS_H - TOUCH_HUD_H, btnH = 44, btnY2 = stripTop + (TOUCH_HUD_H - btnH) / 2;
   var bw = CANVAS_W;
   if (y >= btnY2 && y <= btnY2 + btnH) {
     if (x >= 10       && x <= bw / 2 - 6) { this._activatePauseItem(0); return; }
