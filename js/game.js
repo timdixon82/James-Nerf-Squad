@@ -570,12 +570,28 @@ Game.prototype.startLevel = function(idx) {
     Speech.narrate('Level ' + (idx + 1) + ': ' + cfg.bgName + '. Lives: 3.', 'normal');
   }
 
+  // Pre-place powerups for boss levels so the player has resources from the
+  // start of the fight.  Non-boss levels rely solely on timed and drop spawns.
+  var initialPowerUps = [];
+  if (cfg.bossLevel) {
+    var bossStartTypes = ['shield', 'speed', 'ammo'];
+    for (var bpi = 0; bpi < bossStartTypes.length; bpi++) {
+      initialPowerUps.push({
+        x: rndInt(80, worldW - 80),
+        y: gY - rndInt(20, 60),
+        type: bossStartTypes[bpi],
+        alive: true,
+        bobOffset: rnd(0, Math.PI * 2),
+      });
+    }
+  }
+
   this.ls = {
     player:       player,
     enemies:      [],
     darts:        [],
     platforms:    platforms,
-    powerUps:     [],
+    powerUps:     initialPowerUps,
     boss:         cfg.bossLevel ? createBoss(idx, gY) : null,
     squadMembers: [],
     particles:    [],
@@ -704,7 +720,10 @@ Game.prototype._updateGameplay = function() {
     ls.enemySpawnCount++;
   }
 
-  if (this.gs.frame % 400 === 0) {
+  // Spawn a powerup on a timed cadence.  Boss levels use a shorter interval
+  // (200 frames, ~3s) so the player has a steady supply during the fight.
+  var spawnInterval = cfg.bossLevel ? 200 : 400;
+  if (this.gs.frame % spawnInterval === 0) {
     var types = ['shield', 'speed', 'megadart', 'squad', 'ammo'];
     powerUps.push({
       x: ls.camX + rndInt(40, CANVAS_W - 40),
