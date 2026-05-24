@@ -161,6 +161,28 @@ Edit the `LEVELS` array in `js/constants.js`. Each entry:
 
 ---
 
+## Accessibility
+
+This project targets WCAG 2.2 AAA for its HTML document and canvas accessible name. The `<canvas>` element carries `role="img"` and `aria-label="James' Nerf Squad game area"` so a screen reader announces the element by name rather than as an anonymous region.
+
+The game itself runs entirely on canvas and cannot be perceived by a screen reader. This gap is documented below.
+
+## Known accessibility gap and roadmap
+
+The game canvas renders all gameplay visually. A screen reader user will hear "James' Nerf Squad game area" from the canvas label, but no gameplay feedback reaches assistive technology. A screen reader user cannot play the game itself.
+
+The following work would make the game meaningfully accessible to a screen reader user:
+
+1. An `aria-live` mirror: an off-screen live region that announces game-state changes — player health, score, level start, boss appearance, level complete, and game over — so a screen reader user receives real-time feedback without seeing the canvas.
+
+2. Event-driven audio cues: synthesised sounds using the Web Audio API for shooting, enemy hits, and boss appearances, giving real-time feedback through sound rather than sight.
+
+3. A sonar-style audio-only mode: a mode in which the player navigates by audio tones (pitch or pan indicating enemy proximity and direction), removing the visual requirement and making the core gameplay accessible to a keyboard-and-screen-reader user.
+
+These items are out of scope for the current build. They are recorded here as a named roadmap so a future contributor knows where to start.
+
+---
+
 ## Licence
 
 Personal / educational use. No warranty.
