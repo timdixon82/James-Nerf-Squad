@@ -2,8 +2,7 @@
 #
 # Runs on every pull request. Serves the static site locally on port
 # 8080 with Python's built-in HTTP server, installs Pa11y and axe-core
-# CLI plus wait-on and browser-driver-manager, and runs both tools
-# against index.html.
+# CLI plus wait-on, and runs both tools against index.html.
 #
 # Two well-known GitHub-Actions runner issues are handled here:
 #
@@ -15,7 +14,7 @@
 #
 #   2. The axe-core CLI uses ChromeDriver via Selenium. The runner has
 #      a specific Chrome version; we install a matching ChromeDriver
-#      via browser-driver-manager before running axe. The
+#      via the Chrome for Testing CDN before running axe. The
 #      --chrome-options=no-sandbox argument passes through to the
 #      Chrome process the driver launches.
 #
@@ -43,27 +42,35 @@ jobs:
           node-version: lts/*
 
       - name: Install accessibility tools
-        run: npm install -g pa11y@9.1.1 @axe-core/cli@4.11.3 wait-on@8.0.1 browser-driver-manager@2.0.1
+        run: npm install -g pa11y@9.1.1 @axe-core/cli@4.11.3 wait-on@8.0.1
 
       - name: Install matching ChromeDriver for axe-core
         run: |
-          # Detect the Chrome version ChromeDriver will actually use by probing
-          # platform-specific paths in the same order ChromeDriver checks them.
-          # Using google-chrome-stable --version can return a different binary
-          # than what ChromeDriver launches, causing a version mismatch.
-          CHROME_MAJOR=""
+          # Detect the full Chrome version from the binary ChromeDriver uses.
+          # Probe in the same order ChromeDriver checks binaries.
+          CHROME_FULL=""
           for chrome_bin in /opt/google/chrome/chrome /opt/google/chrome/google-chrome \
               /usr/bin/google-chrome /usr/bin/google-chrome-stable; do
             if [ -x "$chrome_bin" ]; then
-              CHROME_MAJOR=$("$chrome_bin" --version 2>/dev/null | grep -oE '[0-9]+' | head -1)
+              CHROME_FULL=$("$chrome_bin" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -1)
               break
             fi
           done
-          # Install a Chrome + ChromeDriver pair matching the detected version.
-          npx browser-driver-manager install "chrome@${CHROME_MAJOR:-stable}"
-          bdm_bin=$(find "$HOME/.browser-driver-manager" -name "chromedriver" -type f 2>/dev/null | head -1)
-          if [ -n "$bdm_bin" ]; then
-            echo "$(dirname "$bdm_bin")" >> "$GITHUB_PATH"
+          if [ -z "$CHROME_FULL" ]; then
+            echo "WARNING: Could not detect Chrome version; axe will use system ChromeDriver." && exit 0
+          fi
+          echo "Detected Chrome ${CHROME_FULL}."
+          mkdir -p "$HOME/chromedriver-matching"
+          if curl -sfL \
+              "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_FULL}/linux64/chromedriver-linux64.zip" \
+              -o /tmp/chromedriver.zip; then
+            unzip -q /tmp/chromedriver.zip -d /tmp/chromedriver-extract
+            install -m 0755 /tmp/chromedriver-extract/chromedriver-linux64/chromedriver \
+              "$HOME/chromedriver-matching/chromedriver"
+            echo "CHROMEDRIVER_PATH=$HOME/chromedriver-matching/chromedriver" >> "$GITHUB_ENV"
+            echo "Installed ChromeDriver ${CHROME_FULL}."
+          else
+            echo "WARNING: CDN download failed; axe will use system ChromeDriver."
           fi
 
       - name: Build CI pa11y config with system Chrome path
@@ -81,4 +88,9 @@ jobs:
         run: pa11y --standard WCAG2AAA --config pa11y.ci.json http://localhost:8080/index.html
 
       - name: axe-core on index.html at WCAG 2.2 AAA
-        run: axe http://localhost:8080/index.html --tags wcag2a,wcag2aa,wcag2aaa,wcag22aa,wcag22aaa --chrome-options=no-sandbox
+        run: |
+          if [ -n "${CHROMEDRIVER_PATH:-}" ]; then
+            axe http://localhost:8080/index.html --tags wcag2a,wcag2aa,wcag2aaa,wcag22aa,wcag22aaa --chrome-options=no-sandbox --chromedriver-path "$CHROMEDRIVER_PATH"
+          else
+            axe http://localhost:8080/index.html --tags wcag2a,wcag2aa,wcag2aaa,wcag22aa,wcag22aaa --chrome-options=no-sandbox
+          fi
