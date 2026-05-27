@@ -47,9 +47,13 @@ jobs:
 
       - name: Install matching ChromeDriver for axe-core
         run: |
-          npx browser-driver-manager install chrome
-          # Export BDM's chromedriver to GITHUB_PATH so subsequent steps
-          # find it before the system ChromeDriver (which may be a different version).
+          # Detect system Chrome major version and install a matching pair.
+          # browser-driver-manager install chrome (no version) installs the
+          # latest stable, which may be newer than the runner's system Chrome.
+          # Pinning to the system major version prevents ChromeDriver mismatches.
+          # BDM version syntax: chrome@<version> (e.g. chrome@148).
+          CHROME_MAJOR=$(google-chrome-stable --version 2>/dev/null | grep -oE '[0-9]+' | head -1)
+          npx browser-driver-manager install "chrome@${CHROME_MAJOR:-stable}"
           bdm_bin=$(find "$HOME/.browser-driver-manager" -name "chromedriver" -type f 2>/dev/null | head -1)
           if [ -n "$bdm_bin" ]; then
             echo "$(dirname "$bdm_bin")" >> "$GITHUB_PATH"
