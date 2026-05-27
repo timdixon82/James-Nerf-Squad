@@ -47,12 +47,19 @@ jobs:
 
       - name: Install matching ChromeDriver for axe-core
         run: |
-          # Detect system Chrome major version and install a matching pair.
-          # browser-driver-manager install chrome (no version) installs the
-          # latest stable, which may be newer than the runner's system Chrome.
-          # Pinning to the system major version prevents ChromeDriver mismatches.
-          # BDM version syntax: chrome@<version> (e.g. chrome@148).
-          CHROME_MAJOR=$(google-chrome-stable --version 2>/dev/null | grep -oE '[0-9]+' | head -1)
+          # Detect the Chrome version ChromeDriver will actually use by probing
+          # platform-specific paths in the same order ChromeDriver checks them.
+          # Using google-chrome-stable --version can return a different binary
+          # than what ChromeDriver launches, causing a version mismatch.
+          CHROME_MAJOR=""
+          for chrome_bin in /opt/google/chrome/chrome /opt/google/chrome/google-chrome \
+              /usr/bin/google-chrome /usr/bin/google-chrome-stable; do
+            if [ -x "$chrome_bin" ]; then
+              CHROME_MAJOR=$("$chrome_bin" --version 2>/dev/null | grep -oE '[0-9]+' | head -1)
+              break
+            fi
+          done
+          # Install a Chrome + ChromeDriver pair matching the detected version.
           npx browser-driver-manager install "chrome@${CHROME_MAJOR:-stable}"
           bdm_bin=$(find "$HOME/.browser-driver-manager" -name "chromedriver" -type f 2>/dev/null | head -1)
           if [ -n "$bdm_bin" ]; then
