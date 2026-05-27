@@ -1,0 +1,5 @@
+# macOS finder artefacts
+.DS_Store
+
+# Generated at CI time by the accessibility workflow; must not be committed.
+pa11y.ci.json
