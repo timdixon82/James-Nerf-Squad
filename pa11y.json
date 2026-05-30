@@ -1,4 +1,15 @@
 {
+  "_comment": [
+    "Pa11y base configuration. Committed to the project root.",
+    "CI generates pa11y.ci.json from this file (adding chromeLaunchConfig.executablePath)",
+    "using the accessibility workflow; do not commit pa11y.ci.json.",
+    "The chromeLaunchConfig.args entry disables the sandbox for CI runners",
+    "that restrict unprivileged user namespaces (GitHub-hosted Ubuntu 24.04).",
+    "Ignore entries record known deferred AAA findings; each entry must",
+    "have a matching note in docs/accessibility.md.",
+    "Remove an entry when the corresponding finding is fixed.",
+    "Do not add new codes here without a matching entry in docs/accessibility.md."
+  ],
   "chromeLaunchConfig": {
     "args": ["--no-sandbox", "--disable-setuid-sandbox"]
   },

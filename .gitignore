@@ -1,5 +1,50 @@
-# macOS finder artefacts
+# Operating system files
 .DS_Store
+Thumbs.db
 
-# Generated at CI time by the accessibility workflow; must not be committed.
+# iCloud Drive sync conflict files. When the same file is modified in two
+# places (or iCloud perceives a conflict), it creates a sibling with a
+# numeric suffix before the extension: `name 2.md`, `name 3.md`, and so
+# on. They are sync artefacts, never intentional, and never belong in
+# the repository.
+* 2.*
+* 3.*
+* 4.*
+* 5.*
+
+# Editor files
+.vscode/
+.idea/
+
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+
+# Claude Code local settings — local to this machine, not shared
+.claude/settings.local.json
+
+# Hook-generated telemetry files — appended by hooks on every tool call.
+# Tracking them causes git pull conflicts when hooks fire during pulls.
+# These are local-only audit trails.
+.claude/work/*/events.jsonl
+.claude/work/*/github-actions-log.md
+
+# Transcripts written by the session hook — local audit trail, not for the repo.
+.claude/transcripts/
+
+# CI-only Pa11y config, derived from pa11y.json in the accessibility workflow. Generated, never committed.
 pa11y.ci.json

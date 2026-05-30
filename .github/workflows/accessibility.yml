@@ -1,27 +1,30 @@
 # Accessibility checks at WCAG 2.2 AAA using Pa11y and axe-core.
 #
-# Runs on every pull request. Serves the static site locally on port
-# 8080 with Python's built-in HTTP server, installs Pa11y and axe-core
-# CLI plus wait-on, and runs both tools against index.html.
+# Chrome version drift fix (must be applied to every team repo):
+#   GitHub Actions updates the runner's system Chrome frequently. Pa11y uses
+#   bundled puppeteer-core, which looks for Chrome in ~/.cache/puppeteer at an
+#   exact version path. When the runner Chrome version changes, puppeteer-core
+#   cannot find it and Pa11y fails with "Could not find Chrome".
 #
-# Two well-known GitHub-Actions runner issues are handled here:
+#   Two-part fix:
+#   1. Pa11y: generate a pa11y.ci.json at CI time using jq, overriding
+#      chromeLaunchConfig.executablePath to the system Chrome path. Pa11y then
+#      uses the runner's Chrome directly, bypassing the Puppeteer cache.
+#   2. axe-core: detect the full 4-part Chrome version from the binary
+#      ChromeDriver probes first, then download the exact matching ChromeDriver
+#      from the Chrome for Testing CDN
+#      (storage.googleapis.com/chrome-for-testing-public). Store the path in
+#      GITHUB_ENV and pass it to axe via --chromedriver-path so the driver
+#      and browser are always the same version regardless of what is in PATH.
 #
-#   1. Pa11y, via Puppeteer, needs --no-sandbox because the runner
-#      disables unprivileged user namespaces. Pa11y picks up the
-#      pa11y.json file in the repository root, whose
-#      chromeLaunchConfig.args sets --no-sandbox and
-#      --disable-setuid-sandbox.
+#   The pa11y.json in the project root is the base config; pa11y.ci.json is
+#   generated at CI time and must not be committed to the repository.
 #
-#   2. The axe-core CLI uses ChromeDriver via Selenium. The runner has
-#      a specific Chrome version; we install a matching ChromeDriver
-#      via the Chrome for Testing CDN before running axe. The
-#      --chrome-options=no-sandbox argument passes through to the
-#      Chrome process the driver launches.
+# Known limitation: the game is rendered on a <canvas>. Pa11y and axe-core
+# run against the served HTML; full rendered-interface testing is Carol's
+# responsibility in her manual test pass.
 #
-# Security note: no untrusted GitHub context variables are used in any
-# run step. All run commands are fixed strings.
-#
-# Action versions are pinned to commit SHAs verified on 2026-05-27.
+# Action versions pinned on 2026-05-24. Re-pin when updating major versions.
 
 name: Accessibility
 on:
@@ -42,7 +45,13 @@ jobs:
           node-version: lts/*
 
       - name: Install accessibility tools
-        run: npm install -g pa11y@9.1.1 @axe-core/cli@4.11.3 wait-on@8.0.1
+        # Tools are managed in .github/accessibility-tools/package.json so
+        # Dependabot can track and propose version bumps automatically.
+        run: npm ci
+        working-directory: .github/accessibility-tools
+
+      - name: Add accessibility tools to PATH
+        run: echo "$GITHUB_WORKSPACE/.github/accessibility-tools/node_modules/.bin" >> "$GITHUB_PATH"
 
       - name: Install matching ChromeDriver for axe-core
         run: |
@@ -60,6 +69,7 @@ jobs:
             echo "WARNING: Could not detect Chrome version; axe will use system ChromeDriver." && exit 0
           fi
           echo "Detected Chrome ${CHROME_FULL}."
+          # Download the exact matching ChromeDriver from the Chrome for Testing CDN.
           mkdir -p "$HOME/chromedriver-matching"
           if curl -sfL \
               "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_FULL}/linux64/chromedriver-linux64.zip" \
@@ -82,12 +92,12 @@ jobs:
         run: python3 -m http.server 8080 &
 
       - name: Wait for the server to be ready
-        run: npx wait-on http://localhost:8080 --timeout 15000
+        run: wait-on http://localhost:8080 --timeout 15000
 
-      - name: Pa11y on index.html at WCAG 2.2 AAA
+      - name: Pa11y at WCAG 2.2 AAA
         run: pa11y --standard WCAG2AAA --config pa11y.ci.json http://localhost:8080/index.html
 
-      - name: axe-core on index.html at WCAG 2.2 AAA
+      - name: axe-core at WCAG 2.2 AAA
         run: |
           if [ -n "${CHROMEDRIVER_PATH:-}" ]; then
             axe http://localhost:8080/index.html --tags wcag2a,wcag2aa,wcag2aaa,wcag22aa,wcag22aaa --chrome-options=no-sandbox --chromedriver-path "$CHROMEDRIVER_PATH"
