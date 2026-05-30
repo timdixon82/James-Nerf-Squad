@@ -1,0 +1,83 @@
+# Deploy to GitHub Pages.
+# Runs on every push to main and on manual dispatch.
+#
+# THIS IS THE TEAM STANDARD for deploying a static site to GitHub Pages.
+# See docs/patterns/github-pages-deploy.md in the global wiki for the full
+# standard.
+#
+# James Nerf Squad is an UNBUNDLED static project: index.html, js/, and css/
+# are served directly from the repository root with no build step. An
+# "Assemble site" step copies runtime files into _site, excluding development
+# and configuration files.
+#
+# Activation (one-time, per repo): GitHub > Settings > Pages > Build and
+# deployment > Source > "GitHub Actions" (NOT "Deploy from a branch").
+#
+# Action SHAs are pinned to full 40-character commit SHAs. The version tag
+# is in the trailing comment; update SHAs via Dependabot.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy at a time. In-progress deploy is cancelled if a new push arrives.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Assemble site
+        run: |
+          mkdir _site
+          rsync -av \
+            --exclude='_site' \
+            --exclude='node_modules' \
+            --exclude='.github' \
+            --exclude='docs' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='eslint.config.js' \
+            --exclude='.htmlhintrc' \
+            --exclude='.editorconfig' \
+            --exclude='.gitignore' \
+            --exclude='.release-please-manifest.json' \
+            --exclude='release-please-config.json' \
+            --exclude='CLAUDE.md' \
+            --exclude='CHANGELOG.md' \
+            --exclude='VERSION' \
+            --exclude='pa11y.ci.json' \
+            . _site/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6.0.0
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128  # v5.0.0

@@ -1,0 +1,17 @@
+{
+  "name": "james-nerf-squad",
+  "version": "1.0.0",
+  "description": "Side-scrolling pixel-art action game for James, served as a static page on GitHub Pages.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint:html": "htmlhint index.html",
+    "lint:js": "eslint \"js/*.js\"",
+    "lint": "npm run lint:html && npm run lint:js"
+  },
+  "devDependencies": {
+    "eslint": "9.27.0",
+    "globals": "16.1.0",
+    "htmlhint": "1.6.3"
+  }
+}

@@ -1,0 +1,28 @@
+# Dependabot configuration.
+# Weekly, grouped dependency updates. Remove any ecosystem block the project
+# does not use, so Dependabot does not warn about a missing manifest.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      javascript:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /.github/accessibility-tools
+    schedule:
+      interval: weekly
+    groups:
+      accessibility-tools:
+        patterns: ["*"]
