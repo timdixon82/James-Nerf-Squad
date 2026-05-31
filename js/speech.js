@@ -36,7 +36,11 @@ var Speech = (function () {
         _speak(next);
       }
     };
-    window.speechSynthesis.speak(utt);
+    try {
+      window.speechSynthesis.speak(utt);
+    } catch (e) {
+      // speech API unavailable or blocked — degrade silently
+    }
   }
 
   function narrate(msg, priority) {
@@ -44,7 +48,11 @@ var Speech = (function () {
 
     if (priority === 'high') {
       pending = null;
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {
+        // speech API unavailable or blocked
+      }
       _speak(msg);
     } else {
       // 'normal': if something is currently speaking, queue this message.
@@ -62,7 +70,11 @@ var Speech = (function () {
   // announcements now that the game is playable under reduced motion.
   function setReducedMotion(value) {
     if (value && supported) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {
+        // speech API unavailable or blocked
+      }
       pending = null;
     }
   }
