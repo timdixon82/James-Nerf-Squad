@@ -32,3 +32,8 @@ Presenting to Tim for merge approval.
 ## [2026-05-24] merge | PR7 merged to main
 
 Tim approved (Q119A) with correction: "Auto-used:" → "Auto Use:". Sonja applied fix at f00c652 directly on the branch before merge. PR7 merged via squash, merge commit c961c67.
+- [2026-05-31 11:34:29] subagent completed
+
+## [2026-05-31] close | Work folder 017 closed — all onboarding complete
+
+All open PRs merged to main: PR #9 (per-project .claude/ isolation, with six security fixes folded in), PR #10 (security-hook-patch), PR #12 (template onboarding and next-q script), PR #14 (Dependabot JavaScript bump), PR #13 (release 1.1.0). GitHub release v1.1.0 published automatically by release-please. Dependency graph and Dependabot alerts enabled on the repository. All stale branches deleted. Q263, Q264, and Q265 recorded as answered. Work folder status set to done.

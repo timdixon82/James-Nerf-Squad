@@ -8,7 +8,7 @@ The game is a side-scrolling pixel-art action game built in vanilla HTML, CSS, a
 
 Tim has reported a behavioural bug: **keys appear to be sticking**. Sean investigates after the backfill identifies the architecture; the likely places are `js/input.js` (held-map update, keydown/keyup pair, modifier-key handling, focus loss) and `js/touch.js` (touch buttons write into the same input state).
 
-- Status: parked
+- Status: done
 - Branch: none
 - Priority: 7
 - Blockers: None
