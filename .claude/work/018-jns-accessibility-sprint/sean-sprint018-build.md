@@ -141,3 +141,22 @@ Three lines in `/Users/timdixon/Code/Github/James-Nerf-Squad/js/speech.js` were 
 Each site is wrapped individually so errors are scoped to the call that caused them. No console.error is emitted; a comment names the failure mode.
 
 Commit: `fix: wrap speechSynthesis calls in try/catch for graceful degradation`
+
+### BOSS label contrast fix
+
+Flagged by Carol's test pass: the "BOSS" label text in the level-select screen used `#ff4444` on a `#111122` background, giving approximately 5.47:1 - below the WCAG AAA 7:1 threshold.
+
+File changed:
+
+- `/Users/timdixon/Code/Github/James-Nerf-Squad/js/screens.js` line 130
+
+Change:
+
+- Old: `px(ctx, 'BOSS', bx + 4, by + 14, 5, '#ff4444')`
+- New: `px(ctx, 'BOSS', bx + 4, by + 14, 5, '#ff8a7a')`
+
+`#ff8a7a` is the project palette colour introduced in R-06 (mega blaster label and boss health-bar name). It gives approximately 8.1:1 on `#111122`, clearing the 7:1 threshold.
+
+The decorative `strokeStyle` border on line 125 that also uses `#ff4444` was left unchanged - it is a rectangle border, not text, and is exempt from WCAG 1.4.6 Contrast Enhanced.
+
+Commit: `fix(a11y): raise BOSS label colour to WCAG AAA 7:1 on dark background`

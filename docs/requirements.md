@@ -1,6 +1,6 @@
 # Requirements: James Nerf Squad
 
-This document records the requirements for James Nerf Squad. Initial backfill by the agent team on 2026-05-23 (work folder 017). To be expanded by Tad.
+This document records the requirements for James Nerf Squad. Initial backfill by the agent team on 2026-05-23 (work folder 017). Sprint 018 requirements added by Tad on 2026-05-31 (work folder 018).
 
 ## Background
 
@@ -14,6 +14,7 @@ James Nerf Squad is a side-scrolling pixel-art action game built for James. It r
 4. As James, I want to see my high scores per level so I can try to beat them.
 5. As James, I want to play on a touchscreen as well as a keyboard so I can use any device.
 6. As Tim (parent), I want the game to respect reduced-motion preferences so James can play comfortably.
+7. As a screen-reader user, I want the game to announce key events through a live region and speech synthesis so I can follow what is happening without seeing the canvas.
 
 ## Functional requirements
 
@@ -30,7 +31,7 @@ James Nerf Squad is a side-scrolling pixel-art action game built for James. It r
 
 ### Accessibility
 
-WCAG 2.2 AAA is the target. The canvas rendering model requires a parallel accessibility approach: an off-screen live region mirroring key game events, and keyboard-only menu navigation. Documented in `docs/accessibility.md`.
+WCAG 2.2 AAA (Web Content Accessibility Guidelines 2.2 at AAA conformance) is the target. The canvas rendering model requires a parallel accessibility approach: an off-screen live region mirroring key game events, and keyboard-only menu navigation. Documented in `docs/accessibility.md`.
 
 ### Security
 
@@ -48,10 +49,106 @@ No personal data is collected or processed. See `docs/privacy.md`.
 
 - Server-side components or accounts.
 - Multiplayer.
-- Audio asset files (audio is synthesised by Web Audio).
+- Audio asset files (audio is synthesised by Web Audio API).
 - A build or bundling step.
+- Reduced-speed accessible game mode (deferred from sprint 018).
+
+## Sprint 018 requirements
+
+These requirements were derived from Q-JNS1 through Q-JNS5 (answered 2026-05-31) and Carol's baseline audit in work folder 017. Each has an acceptance checklist that can be tested as true or false.
+
+### R-01: ARIA live region and Web Speech API narration
+
+Add a visually hidden announcer element to `index.html` and wire it to ten game events. Mirror each announcement through the Web Speech API (Web Speech Application Programming Interface) where available.
+
+#### Acceptance criteria
+
+- [ ] `index.html` contains `<div aria-live="polite" aria-atomic="false" id="game-announcer" class="sr-only">`.
+- [ ] The announcer module lives in `js/announcer.js`, not inline in `game.js`.
+- [ ] `textContent` of the live region updates at each of the following ten points:
+  - Game load: "James' Nerf Squad. Press Enter or Space to start. Press H for help."
+  - Title screen: "Main menu. Use Up and Down to navigate. Press Enter to select."
+  - Level start: "Level [N]: [name]. [enemy count] enemies. Lives: 3."
+  - Life lost: "Hit. Lives remaining: [N]."
+  - Power-up collected: "[Power-up name] collected."
+  - Level complete: "Mission complete. Score: [N]. Press Space to continue."
+  - Game over: "Game over. Final score: [N]. Use Up and Down to choose Retry or Main Menu."
+  - Boss intro: "Warning. Boss fight. [Boss name]."
+  - Pause open: "Game paused. Use Up and Down to navigate. Press Enter to select."
+  - Pause resume: "Game resumed."
+- [ ] Each announcement is also spoken via `window.speechSynthesis.speak()` when the API is available.
+- [ ] Any queued speech is cancelled before a new utterance begins.
+- [ ] All `speechSynthesis` calls are wrapped in a try/catch block.
+- [ ] When `speechSynthesis` is absent or blocked, the game runs without errors (graceful degradation).
+
+### R-02: prefers-reduced-motion gate
+
+Read the `prefers-reduced-motion` media query at startup and respond to changes. Reduce scroll speed and disable particles when the user's operating system requests reduced motion.
+
+#### Acceptance criteria
+
+- [ ] `window.matchMedia('(prefers-reduced-motion: reduce)').matches` is read at startup in `game.js` or `main.js`.
+- [ ] A `change` event listener keeps the flag current during a session.
+- [ ] When reduced motion is active, every level's `scrollSpeed` is set to 0.3.
+- [ ] When reduced motion is active, a `particlesEnabled` flag is set to `false`.
+- [ ] `js/particles.js` reads `particlesEnabled` and emits no particles when the flag is false.
+- [ ] When reduced motion is not active, the original values from `constants.js` are used.
+- [ ] Toggling the OS reduced-motion setting mid-session takes effect without a page reload.
+
+### R-03: MIT licence
+
+Add a `LICENSE` file at the repository root containing the standard MIT licence text.
+
+#### Acceptance criteria
+
+- [ ] A file named `LICENSE` exists at the repository root.
+- [ ] The licence text is the standard MIT licence.
+- [ ] The copyright line reads "Copyright 2026 Tim Dixon".
+- [ ] No other licence files exist at the root.
+
+### R-04: Version number on pause screen
+
+Display the project version as small text in the bottom-right corner of the pause screen. Read the version from the `VERSION` file at runtime.
+
+#### Acceptance criteria
+
+- [ ] The game fetches `VERSION` on load using `fetch('VERSION')` and stores the result in a module-level variable.
+- [ ] `drawPauseMenu()` in `screens.js` renders the version string in the bottom-right corner of the pause overlay.
+- [ ] The version is formatted as "v[version]", for example "v1.1.0".
+- [ ] The text colour is `#888` (mid-grey).
+- [ ] If the fetch fails, the game continues without error and the version area is left blank.
+
+### R-05: Self-host Google Font
+
+Download the font files used by the game and serve them from the repository. Remove all references to Google Fonts from the CSS and the Content Security Policy (CSP) in `index.html`.
+
+#### Acceptance criteria
+
+- [ ] The exact font family and all weights in use are identified.
+- [ ] WOFF2 (Web Open Font Format 2) file(s) for those weights are committed to `fonts/`.
+- [ ] `css/style.css` no longer contains a Google Fonts `@import` or `@import url(...)` pointing to `fonts.googleapis.com`.
+- [ ] `css/style.css` contains a local `@font-face` declaration pointing to `fonts/`.
+- [ ] `index.html` no longer lists `https://fonts.googleapis.com` or `https://fonts.gstatic.com` in its CSP meta tag.
+- [ ] The font renders correctly in a visual check after the change.
+
+### R-06: Colour contrast AAA fixes
+
+Adjust five canvas-drawn colour pairs so each meets WCAG 1.4.6 Contrast Enhanced (minimum 7:1 against its background).
+
+#### Acceptance criteria
+
+- [ ] Rifle blaster label colour is updated from `#44bbff` to a value that achieves at least 7:1 against black (`#000000`).
+- [ ] Mega blaster label colour is updated from `#ff4444` to a value that achieves at least 7:1 against black.
+- [ ] Inactive title menu item colour is updated from `#aaa` to a value that achieves at least 7:1 against `#050514`.
+- [ ] Game-over header colour is updated from `#ff2200` to a value that achieves at least 7:1 against black.
+- [ ] Boss health-bar name colour is updated to match the fixed mega blaster value (same constant).
+- [ ] Jacob has verified the chosen replacement values against the canvas backgrounds before Sean applies them.
+- [ ] All changes are applied in `constants.js` and any hardcoded values in `screens.js`, `hud.js`, and `boss.js`.
+- [ ] A Pa11y (accessibility checking tool) run against the served instance shows no contrast failures for the affected elements.
 
 ## Definition of done
+
+### Original (work folder 017)
 
 - All nine levels playable start to finish.
 - Keys-sticking bug resolved (blur and visibilitychange handlers in place; Shift-key case normalisation applied).
@@ -59,3 +156,16 @@ No personal data is collected or processed. See `docs/privacy.md`.
 - Accessibility live region and keyboard-only menus implemented.
 - All CI checks pass (lint, accessibility, security, CodeQL).
 - Carol has signed off functional, accessibility, and visual testing.
+
+### Sprint 018 additions
+
+- [ ] `js/announcer.js` added; all ten announcement points wired in `game.js`.
+- [ ] Web Speech API narration fires on each announcement; degrades gracefully when unavailable.
+- [ ] `prefers-reduced-motion` gate in place; scroll speed and particles respond correctly.
+- [ ] `LICENSE` file (MIT, Tim Dixon, 2026) committed at repository root.
+- [ ] Version number displayed on the pause screen, read from `VERSION` file.
+- [ ] Google Font self-hosted in `fonts/`; Google Fonts URLs removed from CSS and CSP.
+- [ ] Five colour pairs in `constants.js` and related files updated to meet 7:1 AAA.
+- [ ] Carol's functional, accessibility, and visual passes complete and signed off.
+- [ ] All CI checks pass on the branch.
+- [ ] Pull request open; Sonja merges on Tim's approval.
