@@ -62,7 +62,7 @@ function drawBossBar(ctx, bossName, hp, maxHp) {
   ctx.lineWidth   = 1;
   ctx.strokeRect(barX - 6, barY - 1, barW + 12, 22);
 
-  px(ctx, '! ' + bossName, CANVAS_W / 2, barY + 1, 4, '#ff4444', 'center');
+  px(ctx, '! ' + bossName, CANVAS_W / 2, barY + 1, 4, '#ff8a7a', 'center');
 
   var pct      = clamp(hp / maxHp, 0, 1);
   var barColor = pct > 0.6 ? '#ff4444' : pct > 0.3 ? '#ff8800' : '#ff0000';

@@ -29,8 +29,8 @@ var DART_H      = 3;
 /* ── Blasters ───────────────────────────────────────────────────────────── */
 var BLASTERS = {
   pistol:  { name: 'Starter Pistol', fireRate: 18, damage: 1, ammo: 99, dartCount: 1, spread: 0,  unlockLevel: 1, color: '#ff8800' },
-  rifle:   { name: 'Rapid Rifle',    fireRate:  7, damage: 1, ammo: 40, dartCount: 1, spread: 0,  unlockLevel: 2, color: '#44bbff' },
-  mega:    { name: 'Mega Blaster',   fireRate: 40, damage: 3, ammo: 15, dartCount: 1, spread: 0,  unlockLevel: 5, color: '#ff4444' },
+  rifle:   { name: 'Rapid Rifle',    fireRate:  7, damage: 1, ammo: 40, dartCount: 1, spread: 0,  unlockLevel: 2, color: '#79caff' },
+  mega:    { name: 'Mega Blaster',   fireRate: 40, damage: 3, ammo: 15, dartCount: 1, spread: 0,  unlockLevel: 5, color: '#ff8a7a' },
   scatter: { name: 'Scatter Shot',   fireRate: 22, damage: 1, ammo: 24, dartCount: 3, spread: 12, unlockLevel: 8, color: '#88ff44' },
 };
 
@@ -64,6 +64,12 @@ var LEVELS = [
   { bg: ['#212121','#424242','#616161'], groundColor: '#212121',   enemyTypes: ['kid','drone','robot','minion'],  enemyCount: 18, bossLevel: true,  bossName: 'RIVAL SQUAD LEADER',bossSubtitle: 'The Ultimate Nemesis',platformCount: 5, scrollSpeed: 2.8, bgName: 'FINAL ARENA'     },
 ];
 var TOTAL_LEVELS = LEVELS.length;
+
+/* ── Accessibility colours ──────────────────────────────────────────────── */
+// UI_TEXT_DIM: dim text colour that meets WCAG 1.4.6 AAA 7:1 on #050514.
+// Replaces '#aaa' / '#aaaaaa' at readable-text sites (menu labels, stat lines,
+// help descriptions). Decorative sprite-pixel uses of #aaa are left unchanged.
+var UI_TEXT_DIM = '#c9c9d2';
 
 /* ── Appearance palettes ────────────────────────────────────────────────── */
 var SKIN_COLORS  = ['#f4a460','#e8bf9a','#c68642','#8d5524','#fad6a5','#d2956b'];
