@@ -127,7 +127,7 @@ function drawLevelSelect(ctx, completedLevels, highScores, currentHover, frame) 
     ctx.strokeRect(bx, by, cellW - 8, cellH - 6);
 
     px(ctx, 'LV ' + (i + 1), bx + 4, by + 4, 6, unlocked ? '#fff' : '#555');
-    if (isBoss)      px(ctx, 'BOSS',  bx + 4, by + 14, 5, '#ff4444');
+    if (isBoss)      px(ctx, 'BOSS',  bx + 4, by + 14, 5, '#ff8a7a');
     if (completed)   {
       px(ctx, '***', bx + 4, by + 26, 6, '#ffff00');
       if (highScores[i]) px(ctx, 'HI:' + highScores[i], bx + 4, by + 35, 4, '#aaffaa');
