@@ -286,6 +286,11 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx, autoUsePowerups) {
     px(ctx, items[i].label, CANVAS_W / 2, iy, 6, col, 'center');
   }
   px(ctx, 'UP/DOWN  ENTER SELECT  SHIFT=TOGGLE AUTO', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
+
+  // Version number — decorative supplementary text; contrast ~4.5:1 is acceptable
+  // for non-essential information per the brief (R-04).
+  var ver = window._gameVersion ? 'v' + window._gameVersion : '';
+  if (ver) px(ctx, ver, panX + panW - 6, panY + panH - 5, 4, '#888', 'right');
 }
 
 /* ── Reduced Motion ─────────────────────────────────────────────────────── */
