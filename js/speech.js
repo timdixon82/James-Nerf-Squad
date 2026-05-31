@@ -9,15 +9,17 @@
  *              'normal' queues after the current one.
  *
  * Falls back silently to the live-region announcer if the browser does not
- * support speechSynthesis.  Does not narrate when reduced-motion mode is active
- * (reducedMotionActive flag set by game.js on initialisation).
+ * support speechSynthesis.
+ *
+ * R-02 note: narration is NOT muted when reduced-motion is active.  The game is
+ * now playable under reduced motion (degrade-and-play, sprint 018), so a
+ * reduced-motion user still needs all announcements.  setReducedMotion() remains
+ * callable from game.js (it cancels any queued utterance on toggle) but no longer
+ * suppresses subsequent narrate() calls.
  */
 
 var Speech = (function () {
   var supported = typeof window !== 'undefined' && !!window.speechSynthesis;
-
-  // Set to true by game.js when the reduced-motion screen is shown.
-  var reducedMotionActive = false;
 
   // Simple queue: at most one pending utterance at a time.
   var pending = null;
@@ -34,16 +36,23 @@ var Speech = (function () {
         _speak(next);
       }
     };
-    window.speechSynthesis.speak(utt);
+    try {
+      window.speechSynthesis.speak(utt);
+    } catch (e) {
+      // speech API unavailable or blocked — degrade silently
+    }
   }
 
   function narrate(msg, priority) {
     if (!supported) return;
-    if (reducedMotionActive) return;
 
     if (priority === 'high') {
       pending = null;
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {
+        // speech API unavailable or blocked
+      }
       _speak(msg);
     } else {
       // 'normal': if something is currently speaking, queue this message.
@@ -55,10 +64,17 @@ var Speech = (function () {
     }
   }
 
+  // Called by game.js when the prefers-reduced-motion preference changes.
+  // Cancels any queued utterance so mid-transition chatter is cleared, but
+  // does not permanently suppress narration — reduced-motion users need all
+  // announcements now that the game is playable under reduced motion.
   function setReducedMotion(value) {
-    reducedMotionActive = !!value;
-    if (reducedMotionActive && supported) {
-      window.speechSynthesis.cancel();
+    if (value && supported) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {
+        // speech API unavailable or blocked
+      }
       pending = null;
     }
   }

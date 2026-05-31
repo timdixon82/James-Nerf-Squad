@@ -4,6 +4,14 @@
  * Entry point. Creates the Game instance, loads saved data, and starts.
  */
 
+// Fetch the version string once at startup and store it globally so
+// screens.js can render it on the pause screen without coupling to main.js.
+window._gameVersion = '';
+fetch('VERSION')
+  .then(function(r) { return r.text(); })
+  .then(function(v) { window._gameVersion = v.trim(); })
+  .catch(function() { /* version display is non-critical; fail silently */ });
+
 function main() {
   var canvas = document.getElementById('gameCanvas');
   if (!canvas) { console.error('Canvas element not found'); return; }

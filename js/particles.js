@@ -4,7 +4,16 @@
  * Simple particle system.
  */
 
+// Reduced-motion gate: set to true by game.js when prefers-reduced-motion is active.
+// All spawnParticles calls become no-ops when this flag is on.
+var particlesReduced = false;
+
+function setParticlesReduced(on) {
+  particlesReduced = !!on;
+}
+
 function spawnParticles(arr, x, y, color, count, speed, text) {
+  if (particlesReduced) return;
   if (speed === undefined) speed = 2;
   for (var i = 0; i < count; i++) {
     var angle = (i / count) * Math.PI * 2;

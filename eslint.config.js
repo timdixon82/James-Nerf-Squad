@@ -33,6 +33,7 @@ const gameGlobals = {
   POWERUPS: 'readonly',
   LEVELS: 'readonly',
   TOTAL_LEVELS: 'readonly',
+  UI_TEXT_DIM: 'readonly',
   SKIN_COLORS: 'readonly',
   HAIR_COLORS: 'readonly',
   CLOTH_COLORS: 'readonly',

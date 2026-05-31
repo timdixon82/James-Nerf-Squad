@@ -35,7 +35,7 @@ function drawTitleScreen(ctx, frame, skinColor, hairColor, clothColor, menuIdx, 
     var flash = sel && Math.floor(frame / 12) % 2 === 0;
     if (sel) { ctx.fillStyle = 'rgba(255,255,100,0.12)'; ctx.fillRect(CANVAS_W / 2 - 120, iy - 3, 240, 18); }
     if (sel) px(ctx, '>', CANVAS_W / 2 - 100, iy, 6, flash ? '#ffff00' : '#ff8800');
-    px(ctx, item.label, CANVAS_W / 2, iy, 6, sel ? (flash ? '#ffff00' : '#fff') : '#aaa', 'center');
+    px(ctx, item.label, CANVAS_W / 2, iy, 6, sel ? (flash ? '#ffff00' : '#fff') : UI_TEXT_DIM, 'center');
     px(ctx, '[' + item.key + ']', CANVAS_W / 2 + 102, iy + 1, 4, sel ? '#888' : '#555', 'left');
   }
 
@@ -75,7 +75,7 @@ function drawCustomiseScreen(ctx, skinColor, hairColor, clothColor, skinIdx, hai
   var rowX = (CANVAS_W - rowW) / 2;
 
   function drawRow(label, colors, selectedIdx, rowY, focused) {
-    px(ctx, label, CANVAS_W / 2, rowY - 12, 5, focused ? '#ffff44' : '#aaa', 'center');
+    px(ctx, label, CANVAS_W / 2, rowY - 12, 5, focused ? '#ffff44' : UI_TEXT_DIM, 'center');
     for (var ci = 0; ci < colors.length; ci++) {
       var col = colors[ci];
       var cx2 = rowX + ci * 24 + 9;
@@ -127,7 +127,7 @@ function drawLevelSelect(ctx, completedLevels, highScores, currentHover, frame) 
     ctx.strokeRect(bx, by, cellW - 8, cellH - 6);
 
     px(ctx, 'LV ' + (i + 1), bx + 4, by + 4, 6, unlocked ? '#fff' : '#555');
-    if (isBoss)      px(ctx, 'BOSS',  bx + 4, by + 14, 5, '#ff4444');
+    if (isBoss)      px(ctx, 'BOSS',  bx + 4, by + 14, 5, '#ff8a7a');
     if (completed)   {
       px(ctx, '***', bx + 4, by + 26, 6, '#ffff00');
       if (highScores[i]) px(ctx, 'HI:' + highScores[i], bx + 4, by + 35, 4, '#aaffaa');
@@ -190,7 +190,7 @@ function drawGameOver(ctx, score, frame, menuIdx) {
     ctx.lineTo(CANVAS_W / 2 + Math.cos(angle) * 300, CANVAS_H / 2 + Math.sin(angle) * 300); ctx.stroke();
   }
   var shake = Math.floor(frame / 4) % 2 === 0 ? 1 : -1;
-  px(ctx, 'GAME OVER', CANVAS_W / 2 + shake, 38, 12, '#ff2200', 'center');
+  px(ctx, 'GAME OVER', CANVAS_W / 2 + shake, 38, 12, '#ff7a5c', 'center');
   px(ctx, 'FINAL SCORE', CANVAS_W / 2, 72, 5, '#888', 'center');
   px(ctx, '' + score,    CANVAS_W / 2, 88, 10, '#ffff44', 'center');
   var stars = score > 3000 ? 3 : score > 1500 ? 2 : score > 500 ? 1 : 0;
@@ -212,7 +212,7 @@ function drawGameOver(ctx, score, frame, menuIdx) {
       ctx.strokeRect(CANVAS_W / 2 - 110, iy - 4, 220, 20);
     }
     if (sel) px(ctx, '>', CANVAS_W / 2 - 94, iy, 6, flash ? '#ffff00' : '#ff8800');
-    px(ctx, item.label, CANVAS_W / 2, iy, 6, sel ? (flash ? '#ffff00' : '#fff') : '#aaa', 'center');
+    px(ctx, item.label, CANVAS_W / 2, iy, 6, sel ? (flash ? '#ffff00' : '#fff') : UI_TEXT_DIM, 'center');
     px(ctx, '[' + item.key + ']', CANVAS_W / 2 + 96, iy + 1, 4, sel ? '#888' : '#444', 'left');
   }
   px(ctx, 'UP/DOWN NAV   ENTER SELECT', CANVAS_W / 2, CANVAS_H - 12, 4, '#555', 'center');
@@ -242,7 +242,7 @@ function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame)
     ctx.fillRect(20, iy - 2, CANVAS_W - 40, 18);
     px(ctx, item.label, 24, iy, 5, sel ? '#ffff44' : '#ccc');
     var keyStr = binding ? '[ PRESS KEY ]' : formatKey(keys[item.key] || '?');
-    px(ctx, keyStr, CANVAS_W - 24, iy, 5, binding ? '#ff8800' : (sel ? '#88ff88' : '#aaa'), 'right');
+    px(ctx, keyStr, CANVAS_W - 24, iy, 5, binding ? '#ff8800' : (sel ? '#88ff88' : UI_TEXT_DIM), 'right');
   }
 
   var lhY    = 40 + bindItems.length * 22 + 8;
@@ -282,35 +282,15 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx, autoUsePowerups) {
     ctx.fillRect(panX + 10, iy - 4, panW - 20, 20);
     if (sel) { ctx.strokeStyle = flash ? '#ffff00' : '#ff8800'; ctx.lineWidth = 1.5; ctx.strokeRect(panX + 10, iy - 4, panW - 20, 20); }
     if (sel) px(ctx, '>', panX + 18, iy, 6, flash ? '#ffff00' : '#ff8800');
-    var col = sel ? (flash ? '#ffff00' : '#fff') : '#aaa';
+    var col = sel ? (flash ? '#ffff00' : '#fff') : UI_TEXT_DIM;
     px(ctx, items[i].label, CANVAS_W / 2, iy, 6, col, 'center');
   }
   px(ctx, 'UP/DOWN  ENTER SELECT  SHIFT=TOGGLE AUTO', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
-}
 
-/* ── Reduced Motion ─────────────────────────────────────────────────────── */
-
-/**
- * drawReducedMotionScreen(ctx)
- * WCAG 2.3.3 — shown when prefers-reduced-motion: reduce is active.
- * Renders a static, screen-reader-friendly message on the canvas.
- */
-function drawReducedMotionScreen(ctx) {
-  ctx.fillStyle = '#050514';
-  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-
-  px(ctx, "JAMES' NERF SQUAD", CANVAS_W / 2, 60, 8, '#ffff00', 'center');
-
-  var lines = [
-    { text: 'Reduced motion mode is active on this device.', y: 108, size: 5, color: '#ffffff' },
-    { text: 'This game includes scrolling backgrounds',       y: 128, size: 4, color: '#aaaaaa' },
-    { text: 'and animations.',                               y: 142, size: 4, color: '#aaaaaa' },
-    { text: 'To play, turn off reduced motion in your',      y: 162, size: 4, color: '#aaaaaa' },
-    { text: 'system accessibility settings.',                y: 176, size: 4, color: '#aaaaaa' },
-  ];
-  for (var i = 0; i < lines.length; i++) {
-    px(ctx, lines[i].text, CANVAS_W / 2, lines[i].y, lines[i].size, lines[i].color, 'center');
-  }
+  // Version number — decorative supplementary text; contrast ~4.5:1 is acceptable
+  // for non-essential information per the brief (R-04).
+  var ver = window._gameVersion ? 'v' + window._gameVersion : '';
+  if (ver) px(ctx, ver, panX + panW - 6, panY + panH - 5, 4, '#888', 'right');
 }
 
 /* ── Inventory ──────────────────────────────────────────────────────────── */
@@ -330,7 +310,7 @@ function drawInventoryScreen(ctx, weaponKeys, inventory, currentBlaster, highlig
 
   // Title
   px(ctx, 'INVENTORY', CANVAS_W / 2, 12, 8, '#ffff44', 'center');
-  px(ctx, 'SELECT WEAPON OR USE A POWERUP', CANVAS_W / 2, 26, 4, '#aaaaaa', 'center');
+  px(ctx, 'SELECT WEAPON OR USE A POWERUP', CANVAS_W / 2, 26, 4, UI_TEXT_DIM, 'center');
 
   // --- WEAPONS SECTION ---
   px(ctx, 'WEAPONS', CANVAS_W / 2, 42, 5, '#ffffff', 'center');
@@ -366,7 +346,7 @@ function drawInventoryScreen(ctx, weaponKeys, inventory, currentBlaster, highlig
       px(ctx, 'EQUIPPED', cx, cy + 24, 3, '#44ff44', 'center');
     }
     var ammoStr = 'AMMO:' + blasterData.ammo;
-    px(ctx, ammoStr, cx, cy + 35, 3, '#aaaaaa', 'center');
+    px(ctx, ammoStr, cx, cy + 35, 3, UI_TEXT_DIM, 'center');
   }
 
   // --- POWERUPS SECTION ---
@@ -374,9 +354,9 @@ function drawInventoryScreen(ctx, weaponKeys, inventory, currentBlaster, highlig
   px(ctx, 'STORED POWERUPS', CANVAS_W / 2, powerupStartY - 10, 5, '#ffffff', 'center');
 
   if (invTypes.length === 0) {
-    px(ctx, 'No powerups stored.', CANVAS_W / 2, powerupStartY + 16, 5, '#888888', 'center');
-    px(ctx, 'Collect powerups in the level to fill your', CANVAS_W / 2, powerupStartY + 30, 3, '#666666', 'center');
-    px(ctx, 'inventory, then use them from here.', CANVAS_W / 2, powerupStartY + 40, 3, '#666666', 'center');
+    px(ctx, 'No powerups stored.', CANVAS_W / 2, powerupStartY + 16, 5, UI_TEXT_DIM, 'center');
+    px(ctx, 'Collect powerups in the level to fill your', CANVAS_W / 2, powerupStartY + 30, 3, UI_TEXT_DIM, 'center');
+    px(ctx, 'inventory, then use them from here.', CANVAS_W / 2, powerupStartY + 40, 3, UI_TEXT_DIM, 'center');
   } else {
     var puCols   = 3;
     var puStartX = CANVAS_W / 2 - puCols * cellSize / 2 - cellSize / 2 + 22;
@@ -409,7 +389,7 @@ function drawInventoryScreen(ctx, weaponKeys, inventory, currentBlaster, highlig
   // Footer instructions
   var footerY = CANVAS_H - (touchMode ? 86 : 16);
   px(ctx, touchMode ? 'TAP TO SELECT   BACK = CANCEL' : 'ARROWS: NAVIGATE   ENTER: SELECT   ESC/SHIFT: CLOSE',
-     CANVAS_W / 2, footerY, 3, '#888888', 'center');
+     CANVAS_W / 2, footerY, 3, UI_TEXT_DIM, 'center');
 
   // Touch nav strip
   if (touchMode) {
@@ -442,8 +422,8 @@ function drawHelpScreen(ctx, page, frame) {
     px(ctx, 'BLASTERS', CANVAS_W / 2, 140, 6, '#ff8800', 'center');
     var blasters = [
       { key: 'pistol',  col: '#ff8800' },
-      { key: 'rifle',   col: '#44bbff' },
-      { key: 'mega',    col: '#ff4444' },
+      { key: 'rifle',   col: '#79caff' },
+      { key: 'mega',    col: '#ff8a7a' },
       { key: 'scatter', col: '#88ff44' },
     ];
     for (var bi = 0; bi < blasters.length; bi++) {
@@ -453,7 +433,7 @@ function drawHelpScreen(ctx, page, frame) {
       ctx.fillStyle = b.col; ctx.fillRect(12, by2 + 4, 8, 5);
       ctx.fillStyle = '#fff'; ctx.fillRect(20, by2 + 5, 3, 3);
       px(ctx, bdef.name.toUpperCase(), 24, by2, 4, b.col);
-      px(ctx, 'DMG:' + bdef.damage + ' RATE:' + bdef.fireRate, CANVAS_W - 24, by2, 4, '#aaa', 'right');
+      px(ctx, 'DMG:' + bdef.damage + ' RATE:' + bdef.fireRate, CANVAS_W - 24, by2, 4, UI_TEXT_DIM, 'right');
     }
 
   } else if (page === 1) {
@@ -483,10 +463,10 @@ function drawHelpScreen(ctx, page, frame) {
       }
       ctx.restore();
       px(ctx, e.label, 74, ey + 4,  5, '#fff');
-      px(ctx, e.desc,  74, ey + 18, 4, '#aaa');
+      px(ctx, e.desc,  74, ey + 18, 4, UI_TEXT_DIM);
       px(ctx, '+' + ENEMIES[e.type].score, CANVAS_W - 16, ey + 10, 4, '#ffff44', 'right');
     }
-    px(ctx, 'BOSSES EVERY 3 LEVELS!', CANVAS_W / 2, 248, 4, Math.floor(frame / 20) % 2 ? '#ff4444' : '#ff8800', 'center');
+    px(ctx, 'BOSSES EVERY 3 LEVELS!', CANVAS_W / 2, 248, 4, Math.floor(frame / 20) % 2 ? '#ff8a7a' : '#ff8800', 'center');
 
   } else if (page === 2) {
     px(ctx, 'POWER-UPS', CANVAS_W / 2, 28, 6, '#ff8800', 'center');
@@ -500,7 +480,7 @@ function drawHelpScreen(ctx, page, frame) {
       drawPowerUpIcon(ctx, pkey, 27, py2 + 13 + bob, 20);
       ctx.shadowBlur = 0; ctx.restore();
       px(ctx, def.label, 46, py2 + 4,  5, def.color);
-      px(ctx, def.desc,  46, py2 + 18, 4, '#aaa');
+      px(ctx, def.desc,  46, py2 + 18, 4, UI_TEXT_DIM);
       if (def.duration > 0) px(ctx, (def.duration / 60) + 's', CANVAS_W - 16, py2 + 10, 4, '#88ffff', 'right');
       else                   px(ctx, 'INSTANT',                  CANVAS_W - 16, py2 + 10, 4, '#88ff88', 'right');
     }
@@ -509,17 +489,17 @@ function drawHelpScreen(ctx, page, frame) {
     px(ctx, 'INVENTORY', CANVAS_W / 2, 28, 6, '#ff8800', 'center');
     var ldLines = [
       { text: 'By default, powerups are stored when',     y: 52,  col: '#ffffff' },
-      { text: 'collected (manual mode).',                  y: 66,  col: '#aaaaaa' },
+      { text: 'collected (manual mode).',                  y: 66,  col: UI_TEXT_DIM },
       { text: 'Up to 20 powerups can be stored.',         y: 88,  col: '#aaffaa' },
       { text: 'Press Shift to open the Inventory screen.',y: 110, col: '#ffffff' },
-      { text: 'The game pauses while the screen is open.',y: 124, col: '#aaaaaa' },
+      { text: 'The game pauses while the screen is open.',y: 124, col: UI_TEXT_DIM },
       { text: 'On the Inventory screen:',                 y: 146, col: '#ffff44' },
-      { text: 'Choose a weapon to equip it.',             y: 160, col: '#aaaaaa' },
-      { text: 'Choose a stored powerup to use it.',       y: 174, col: '#aaaaaa' },
+      { text: 'Choose a weapon to equip it.',             y: 160, col: UI_TEXT_DIM },
+      { text: 'Choose a stored powerup to use it.',       y: 174, col: UI_TEXT_DIM },
       { text: 'Press Escape or Shift to close',           y: 196, col: '#ffffff' },
-      { text: 'without using anything.',                  y: 210, col: '#aaaaaa' },
+      { text: 'without using anything.',                  y: 210, col: UI_TEXT_DIM },
       { text: 'Pause menu: toggle Auto powerups ON/OFF.', y: 228, col: '#88ffff' },
-      { text: 'On touch: tap a cell or tap Back.',        y: 242, col: '#888888' },
+      { text: 'On touch: tap a cell or tap Back.',        y: 242, col: UI_TEXT_DIM },
     ];
     for (var li = 0; li < ldLines.length; li++) {
       px(ctx, ldLines[li].text, CANVAS_W / 2, ldLines[li].y, 4, ldLines[li].col, 'center');
