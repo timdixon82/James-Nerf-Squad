@@ -10,6 +10,9 @@ var CANVAS_H          = 270;
 var TILE              = 16;
 var TOUCH_HUD_H       = 72;
 
+/* ── Reduced-motion ─────────────────────────────────────────────────────── */
+var REDUCED_SCROLL_SPEED = 0.3;
+
 /* ── Physics ────────────────────────────────────────────────────────────── */
 var GRAVITY           = 0.45;
 

@@ -9,15 +9,17 @@
  *              'normal' queues after the current one.
  *
  * Falls back silently to the live-region announcer if the browser does not
- * support speechSynthesis.  Does not narrate when reduced-motion mode is active
- * (reducedMotionActive flag set by game.js on initialisation).
+ * support speechSynthesis.
+ *
+ * R-02 note: narration is NOT muted when reduced-motion is active.  The game is
+ * now playable under reduced motion (degrade-and-play, sprint 018), so a
+ * reduced-motion user still needs all announcements.  setReducedMotion() remains
+ * callable from game.js (it cancels any queued utterance on toggle) but no longer
+ * suppresses subsequent narrate() calls.
  */
 
 var Speech = (function () {
   var supported = typeof window !== 'undefined' && !!window.speechSynthesis;
-
-  // Set to true by game.js when the reduced-motion screen is shown.
-  var reducedMotionActive = false;
 
   // Simple queue: at most one pending utterance at a time.
   var pending = null;
@@ -39,7 +41,6 @@ var Speech = (function () {
 
   function narrate(msg, priority) {
     if (!supported) return;
-    if (reducedMotionActive) return;
 
     if (priority === 'high') {
       pending = null;
@@ -55,9 +56,12 @@ var Speech = (function () {
     }
   }
 
+  // Called by game.js when the prefers-reduced-motion preference changes.
+  // Cancels any queued utterance so mid-transition chatter is cleared, but
+  // does not permanently suppress narration — reduced-motion users need all
+  // announcements now that the game is playable under reduced motion.
   function setReducedMotion(value) {
-    reducedMotionActive = !!value;
-    if (reducedMotionActive && supported) {
+    if (value && supported) {
       window.speechSynthesis.cancel();
       pending = null;
     }

@@ -656,50 +656,28 @@ Game.prototype.startLevel = function(idx) {
 Game.prototype.start = function() {
   var self = this;
 
-  // WCAG 2.3.3 — Reduced-motion check.
-  // If the user has requested reduced motion, do not start the 60 fps game
-  // loop.  Instead, render the static reduced-motion screen and notify the
-  // live-region announcer and speech layer.
+  // WCAG 2.3.3 — Reduced-motion gate (R-02: degrade-and-play).
+  // When prefers-reduced-motion is active the game loop still runs, but scroll
+  // speed is capped at REDUCED_SCROLL_SPEED and particles are suppressed.
+  // This replaces the old block-and-instruct notice (removed in sprint 018).
   var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
   this.reducedMotion = !!(mq && mq.matches);
 
-  if (this.reducedMotion) {
-    Speech.setReducedMotion(true);
-    this._drawReducedMotionOnce();
-    announce('Reduced motion mode is active. This game includes animations. To play, turn off reduced motion in your system accessibility settings.');
-    // Listen for live changes so the screen updates if the user changes the setting.
-    if (mq && mq.addEventListener) {
-      mq.addEventListener('change', function(e) {
-        self.reducedMotion = e.matches;
-        Speech.setReducedMotion(e.matches);
-        if (e.matches) {
-          cancelAnimationFrame(self.raf);
-          self.raf = 0;
-          self._drawReducedMotionOnce();
-          announce('Reduced motion mode is active. To play, turn off reduced motion in your system accessibility settings.');
-        } else {
-          // Reduced motion was turned off while on the page — start the game.
-          announce("James' Nerf Squad. Press Enter or Space to start.");
-          Speech.narrate("James' Nerf Squad. Press Enter or Space to start.", 'normal');
-          startMusic('title');
-          var loop = function() { self.update(); self.draw(); self.raf = requestAnimationFrame(loop); };
-          self.raf = requestAnimationFrame(loop);
-        }
-      });
-    }
-    return;
-  }
+  // Initialise subsystems to match the current preference from frame one.
+  Speech.setReducedMotion(this.reducedMotion);
+  setParticlesReduced(this.reducedMotion);
 
-  // Normal (non-reduced-motion) start.
+  // Single change listener — responds to the user toggling the OS preference
+  // mid-session without requiring a page reload.
   if (mq && mq.addEventListener) {
     mq.addEventListener('change', function(e) {
       self.reducedMotion = e.matches;
-      Speech.setReducedMotion(e.matches);
-      if (e.matches) {
-        cancelAnimationFrame(self.raf);
-        self.raf = 0;
-        self._drawReducedMotionOnce();
-        announce('Reduced motion mode is active. To play, turn off reduced motion in your system accessibility settings.');
+      Speech.setReducedMotion(self.reducedMotion);
+      setParticlesReduced(self.reducedMotion);
+      // When turning reduced motion ON at runtime, clear any live particles so
+      // existing bursts stop immediately, not just new ones.
+      if (self.reducedMotion && self.ls && self.ls.particles) {
+        self.ls.particles.length = 0;
       }
     });
   }
@@ -709,11 +687,6 @@ Game.prototype.start = function() {
   startMusic('title');
   var loop = function() { self.update(); self.draw(); self.raf = requestAnimationFrame(loop); };
   this.raf = requestAnimationFrame(loop);
-};
-
-Game.prototype._drawReducedMotionOnce = function() {
-  this.resize();
-  drawReducedMotionScreen(this.ctx);
 };
 
 Game.prototype._setScreen = function(name) {
@@ -759,7 +732,8 @@ Game.prototype._updateGameplay = function() {
   player.update(inp, platforms, ls.groundY);
 
   ls.camX = Math.max(0, Math.min(ls.worldW - CANVAS_W, player.x - CANVAS_W * 0.35));
-  ls.scrollOffset += cfg.scrollSpeed * 0.5;
+  var sp = this.reducedMotion ? REDUCED_SCROLL_SPEED : cfg.scrollSpeed;
+  ls.scrollOffset += sp * 0.5;
 
   ls.enemySpawnTimer--;
   if (ls.enemySpawnTimer <= 0 && ls.enemySpawnCount < ls.maxEnemies) {
