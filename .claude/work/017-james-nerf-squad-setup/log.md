@@ -37,3 +37,5 @@ Tim approved (Q119A) with correction: "Auto-used:" → "Auto Use:". Sonja applie
 ## [2026-05-31] close | Work folder 017 closed — all onboarding complete
 
 All open PRs merged to main: PR #9 (per-project .claude/ isolation, with six security fixes folded in), PR #10 (security-hook-patch), PR #12 (template onboarding and next-q script), PR #14 (Dependabot JavaScript bump), PR #13 (release 1.1.0). GitHub release v1.1.0 published automatically by release-please. Dependency graph and Dependabot alerts enabled on the repository. All stale branches deleted. Q263, Q264, and Q265 recorded as answered. Work folder status set to done.
+- [2026-05-31 11:36:36] subagent completed
+- [2026-05-31 23:15:54] subagent completed
