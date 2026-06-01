@@ -1,6 +1,6 @@
 # Requirements: James Nerf Squad
 
-This document records the requirements for James Nerf Squad. Initial backfill by the agent team on 2026-05-23 (work folder 017). Sprint 018 requirements added by Tad on 2026-05-31 (work folder 018).
+This document records the requirements for James Nerf Squad. Initial backfill by the agent team on 2026-05-23 (work folder 017). Sprint 018 requirements added by Tad on 2026-05-31 (work folder 018). Sprint 020 requirements added by Tad on 2026-06-01 (work folder 020).
 
 ## Background
 
@@ -146,6 +146,65 @@ Adjust five canvas-drawn colour pairs so each meets WCAG 1.4.6 Contrast Enhanced
 - [ ] All changes are applied in `constants.js` and any hardcoded values in `screens.js`, `hud.js`, and `boss.js`.
 - [ ] A Pa11y (accessibility checking tool) run against the served instance shows no contrast failures for the affected elements.
 
+## Sprint 020 requirements
+
+These requirements come from work folder 020 (feat/020-speed-and-autouse). Each has an acceptance checklist that can be tested as true or false.
+
+### R-01 (020): Fix auto-use powerups hint label
+
+In `js/screens.js`, the pause menu item for AUTO POWERUPS shows the hint label `'SHIFT'`. The key that activates the toggle is Enter (or Space), not Shift. Change the hint to `'ENTER'`.
+
+#### Acceptance criteria
+
+- [ ] In `js/screens.js`, the pause menu AUTO POWERUPS item has `hint: 'ENTER'` (not `'SHIFT'`).
+- [ ] No other pause menu item's hint label is changed.
+
+### R-02 (020): Persist auto-use powerups across level starts and sessions
+
+`autoUsePowerups` is currently a property on level state (`this.ls`), so it resets to `false` at every level start and is not saved to localStorage. Move it to game state (`this.gs`) and add it to the save and load cycle.
+
+#### Acceptance criteria
+
+- [ ] `autoUsePowerups` is no longer initialised on `this.ls`; it is initialised on `this.gs` with a default of `false`.
+- [ ] All read sites that previously referenced `this.ls.autoUsePowerups` now reference `this.gs.autoUsePowerups`.
+- [ ] `_toggleAutoUsePowerups()` writes to `this.gs.autoUsePowerups` and calls `this.save()` after each toggle.
+- [ ] The `save()` function includes `autoUsePowerups` in the `nerfSquadSave` localStorage payload.
+- [ ] The `load()` function reads `autoUsePowerups` from localStorage and restores it to `this.gs`.
+- [ ] The auto-use setting survives a level transition within the same session.
+- [ ] The auto-use setting survives a browser refresh (the value is read back from localStorage on load).
+
+### R-03 (020): Easy/Hard game speed in Settings
+
+Add a two-value speed setting to the Settings screen. Hard is the current speed and is the default, so existing saves are unaffected. Easy applies a 0.5 multiplier to specific speed parameters at runtime.
+
+The multiplier must be applied at each read site; it must not mutate the data in `constants.js`.
+
+Speed parameters multiplied by 0.5 in Easy mode:
+
+- Level `scrollSpeed`.
+- Enemy movement speed (horizontal velocity or step per frame).
+- Enemy projectile speed.
+- Boss movement speed.
+- Boss projectile speed.
+
+Parameters that are not multiplied:
+
+- Player movement speed.
+- Jump physics (gravity, jump velocity).
+- Fire rate and cooldown.
+
+#### Acceptance criteria
+
+- [ ] `this.gs.difficulty` is initialised with the value `'hard'`.
+- [ ] The `save()` function includes `difficulty` in the localStorage payload.
+- [ ] The `load()` function reads `difficulty` from localStorage and restores it to `this.gs`.
+- [ ] The Settings screen shows a cycling option labelled "SPEED: EASY" or "SPEED: HARD", toggleable with Enter.
+- [ ] Toggling the setting announces "Easy mode." or "Hard mode." via the announcer.
+- [ ] In Easy mode, `scrollSpeed`, enemy movement speed, enemy projectile speed, boss movement speed, and boss projectile speed are each multiplied by 0.5 at the read site.
+- [ ] In Hard mode, all speed parameters are identical to the current unmodified values (no regression).
+- [ ] The multiplier is applied at each read site; the `LEVELS` data in `constants.js` is not mutated.
+- [ ] The difficulty choice persists across browser refresh (read back from localStorage on load).
+
 ## Definition of done
 
 ### Original (work folder 017)
@@ -167,5 +226,18 @@ Adjust five canvas-drawn colour pairs so each meets WCAG 1.4.6 Contrast Enhanced
 - [ ] Google Font self-hosted in `fonts/`; Google Fonts URLs removed from CSS and CSP.
 - [ ] Five colour pairs in `constants.js` and related files updated to meet 7:1 AAA.
 - [ ] Carol's functional, accessibility, and visual passes complete and signed off.
+- [ ] All CI checks pass on the branch.
+- [ ] Pull request open; Sonja merges on Tim's approval.
+
+### Sprint 020 additions
+
+- [ ] Pause menu AUTO POWERUPS hint changed from SHIFT to ENTER.
+- [ ] Auto-use setting survives level transitions and browser refresh. Toggling calls `save()`.
+- [ ] Settings screen shows SPEED: EASY / SPEED: HARD, toggleable with Enter, announced on change.
+- [ ] Easy mode runs at visibly half speed (scroll, enemy movement, enemy projectiles, boss movement and projectiles).
+- [ ] Hard mode is identical to the current game (no regression).
+- [ ] Difficulty choice persists across sessions.
+- [ ] `constants.js` LEVELS data is not mutated by the multiplier.
+- [ ] Carol's functional and accessibility passes complete and signed off.
 - [ ] All CI checks pass on the branch.
 - [ ] Pull request open; Sonja merges on Tim's approval.
