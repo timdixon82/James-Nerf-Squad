@@ -220,7 +220,7 @@ function drawGameOver(ctx, score, frame, menuIdx) {
 
 /* ── Settings ───────────────────────────────────────────────────────────── */
 
-function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame) {
+function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame, difficulty) {
   ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
   px(ctx, 'SETTINGS', CANVAS_W / 2, 10, 8, '#ffff00', 'center');
 
@@ -254,6 +254,16 @@ function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame)
   px(ctx, altButtonLayout ? 'ON' : 'OFF', CANVAS_W - 24, lhY, 5, altButtonLayout ? '#88ff88' : '#ff6666', 'right');
   px(ctx, altButtonLayout ? 'FIRE=LEFT  D-PAD=RIGHT' : 'D-PAD=LEFT  FIRE=RIGHT',
      CANVAS_W / 2, lhY + 14, 4, '#777', 'center', false);
+
+  var spY   = lhY + rowH + 4;
+  var spSel = selectedIdx === bindItems.length + 1;
+  ctx.fillStyle = spSel ? 'rgba(255,255,255,0.08)' : 'transparent';
+  ctx.fillRect(20, spY - 2, CANVAS_W - 40, rowH);
+  px(ctx, 'SPEED', 24, spY, 5, spSel ? '#ffff44' : '#ccc');
+  px(ctx, difficulty === 'easy' ? 'EASY' : 'HARD', CANVAS_W - 24, spY, 5,
+     difficulty === 'easy' ? '#88ff88' : '#ff6666', 'right');
+  px(ctx, difficulty === 'easy' ? 'EASY = HALF SPEED' : 'HARD = FULL SPEED',
+     CANVAS_W / 2, spY + 14, 4, '#777', 'center', false);
 
   px(ctx, 'UP/DOWN=SELECT  ENTER=CHANGE  ESC=BACK', CANVAS_W / 2, CANVAS_H - 14, 4, '#555', 'center');
 }
