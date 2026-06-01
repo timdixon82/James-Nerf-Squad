@@ -22,6 +22,8 @@ function Game(canvas) {
     highScores:      new Array(TOTAL_LEVELS).fill(0),
     keys:            {},
     altButtonLayout: false,
+    autoUsePowerups: false,
+    difficulty:      'hard',
     skinColor:       SKIN_COLORS[0],
     hairColor:       HAIR_COLORS[0],
     clothColor:      CLOTH_COLORS[0],
@@ -72,8 +74,10 @@ Game.prototype.save = function() {
     completed:       Array.from(this.gs.completedLevels),
     highScores:      this.gs.highScores,
     keys:            this.gs.keys,
-    altButtonLayout: this.gs.altButtonLayout,
-    skinColor:       this.gs.skinColor,
+    altButtonLayout:  this.gs.altButtonLayout,
+    autoUsePowerups:  this.gs.autoUsePowerups,
+    difficulty:       this.gs.difficulty,
+    skinColor:        this.gs.skinColor,
     hairColor:       this.gs.hairColor,
     clothColor:      this.gs.clothColor,
     touchMode:       this.gs.touchMode,
@@ -94,7 +98,9 @@ Game.prototype.load = function() {
           self.gs.keys[k] = data.keys[k] !== undefined ? data.keys[k] : DEFAULT_KEYS[k];
         }
       }
-      self.gs.altButtonLayout = data.altButtonLayout || false;
+      self.gs.altButtonLayout  = data.altButtonLayout || false;
+      self.gs.autoUsePowerups  = data.autoUsePowerups === true;
+      self.gs.difficulty       = (data.difficulty === 'easy') ? 'easy' : 'hard';
       self.gs.skinColor       = data.skinColor  || SKIN_COLORS[0];
       self.gs.hairColor       = data.hairColor  || HAIR_COLORS[0];
       self.gs.clothColor      = data.clothColor || CLOTH_COLORS[0];
@@ -295,7 +301,7 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
       break;
 
     case 'settings': {
-      var items = 7;
+      var items = 8;
       if (key === 'Escape')                               { this._setScreen('title'); this.save(); }
       else if (key === 'ArrowDown' || key === 's' || key === 'S') { this.settingsIdx = (this.settingsIdx + 1) % items; playMenuClick(); }
       else if (key === 'ArrowUp'   || key === 'w' || key === 'W') { this.settingsIdx = (this.settingsIdx - 1 + items) % items; playMenuClick(); }
@@ -304,6 +310,12 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
           this.gs.altButtonLayout = !this.gs.altButtonLayout;
           this.touchButtons = getTouchButtons(this.gs.altButtonLayout);
           this.save(); playMenuConfirm();
+        } else if (this.settingsIdx === 7) {
+          this.gs.difficulty = this.gs.difficulty === 'easy' ? 'hard' : 'easy';
+          this.save(); playMenuConfirm();
+          var diffMsg = this.gs.difficulty === 'easy' ? 'Easy mode.' : 'Hard mode.';
+          announce(diffMsg);
+          Speech.narrate(diffMsg, 'normal');
         } else {
           var bindKeys = ['left', 'right', 'jump', 'shoot', 'switch', 'pause'];
           this.rebinding = bindKeys[this.settingsIdx];
@@ -316,7 +328,6 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
       if (key === 'ArrowUp'   || key === 'w' || key === 'W') { this.pauseMenuIdx = (this.pauseMenuIdx - 1 + 3) % 3; playMenuClick(); }
       else if (key === 'ArrowDown' || key === 's' || key === 'S') { this.pauseMenuIdx = (this.pauseMenuIdx + 1) % 3; playMenuClick(); }
       else if (key === 'Enter' || key === ' ')            this._activatePauseItem(this.pauseMenuIdx);
-      else if (key === k.switch)                          this._toggleAutoUsePowerups();
       else if (key === 'Escape' || key === k.pause || key === 'p') this._resumeGame();
       break;
 
@@ -521,10 +532,10 @@ Game.prototype._resumeGame = function() {
 };
 
 Game.prototype._toggleAutoUsePowerups = function() {
-  if (!this.ls) return;
-  this.ls.autoUsePowerups = !this.ls.autoUsePowerups;
+  this.gs.autoUsePowerups = !this.gs.autoUsePowerups;
+  this.save();
   playMenuClick();
-  var msg = this.ls.autoUsePowerups ? 'Auto powerups on.' : 'Auto powerups off.';
+  var msg = this.gs.autoUsePowerups ? 'Auto powerups on.' : 'Auto powerups off.';
   announce(msg);
   Speech.narrate(msg, 'normal');
 };
@@ -634,7 +645,6 @@ Game.prototype.startLevel = function(idx) {
     squadMembers: [],
     particles:    [],
     inventory:    [],
-    autoUsePowerups: false,
     camX:         0,
     worldW:       worldW,
     groundY:      gY,
@@ -727,12 +737,14 @@ Game.prototype._updateGameplay = function() {
 
   if (ls.bossIntroTimer > 0) return;
 
+  var speedMult = this.gs.difficulty === 'easy' ? 0.5 : 1;
+
   if (inp.switchPressed) { this._openInventory(); return; }
   if (inp.shoot || inp.shootPressed) player.shoot(darts);
   player.update(inp, platforms, ls.groundY);
 
   ls.camX = Math.max(0, Math.min(ls.worldW - CANVAS_W, player.x - CANVAS_W * 0.35));
-  var sp = this.reducedMotion ? REDUCED_SCROLL_SPEED : cfg.scrollSpeed;
+  var sp = (this.reducedMotion ? REDUCED_SCROLL_SPEED : cfg.scrollSpeed) * speedMult;
   ls.scrollOffset += sp * 0.5;
 
   ls.enemySpawnTimer--;
@@ -755,9 +767,9 @@ Game.prototype._updateGameplay = function() {
   }
 
   for (var ei = 0; ei < enemies.length; ei++) {
-    if (enemies[ei].alive) updateEnemy(enemies[ei], player, darts, platforms, ls.groundY, particles, ls.camX);
+    if (enemies[ei].alive) updateEnemy(enemies[ei], player, darts, platforms, ls.groundY, particles, ls.camX, speedMult);
   }
-  if (boss && boss.alive) updateBoss(boss, player, darts, platforms, ls.groundY, particles, ls.camX);
+  if (boss && boss.alive) updateBoss(boss, player, darts, platforms, ls.groundY, particles, ls.camX, speedMult);
   for (var si = squadMembers.length - 1; si >= 0; si--) {
     updateSquadMember(squadMembers[si], player, enemies, boss, darts, platforms, ls.groundY);
     if (squadMembers[si].life <= 0) squadMembers.splice(si, 1);
@@ -850,7 +862,7 @@ Game.prototype._updateGameplay = function() {
       pu.alive = false;
       playPowerUp();
       var label = POWERUPS[pu.type] ? POWERUPS[pu.type].label : pu.type;
-      if (ls.autoUsePowerups) {
+      if (this.gs.autoUsePowerups) {
         // Auto-use: apply the powerup immediately, bypassing inventory.
         this._applyPowerUp(pu.type, player, ls);
         var autoMsg = 'Auto Use: ' + label + '.';
@@ -1089,7 +1101,7 @@ Game.prototype._drawSelect = function() {
   if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('udlrselback'));
 };
 Game.prototype._drawSettings = function() {
-  drawSettings(this.ctx, this.gs.keys, this.rebinding, this.gs.altButtonLayout, this.settingsIdx, this.gs.frame);
+  drawSettings(this.ctx, this.gs.keys, this.rebinding, this.gs.altButtonLayout, this.settingsIdx, this.gs.frame, this.gs.difficulty);
   if (this.gs.touchMode) drawMenuNavStrip(this.ctx, getMenuNavButtons('udselback'));
 };
 Game.prototype._drawCustomise = function() {
@@ -1131,7 +1143,7 @@ Game.prototype._drawPause = function() {
           player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
           this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
   if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
-  drawPauseMenu(this.ctx, this.gs.frame, this.pauseMenuIdx, this.ls ? this.ls.autoUsePowerups : false);
+  drawPauseMenu(this.ctx, this.gs.frame, this.pauseMenuIdx, this.gs.autoUsePowerups);
   if (tm) drawPauseTouchButtons(this.ctx, this.pauseMenuIdx);
 };
 Game.prototype._drawInventory = function() {

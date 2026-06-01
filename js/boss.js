@@ -30,15 +30,16 @@ function createBoss(levelIdx, groundY) {
   };
 }
 
-function updateBoss(boss, player, darts, platforms, groundY, particles, camX) {
+function updateBoss(boss, player, darts, platforms, groundY, particles, camX, speedMult) {
   if (!boss.alive) return;
+  speedMult = speedMult || 1;
   boss.anim++;
   boss.hurtTimer = Math.max(0, boss.hurtTimer - 1);
   boss.phase = boss.hp < boss.maxHp * 0.33 ? 2
              : boss.hp < boss.maxHp * 0.66 ? 1 : 0;
   // Base speed halved from original 1.2 so the boss feels more manageable.
   // Phase bonuses halved proportionally (was +0.6 per phase, now +0.3).
-  var speed = 0.6 + boss.phase * 0.3;
+  var speed = (0.6 + boss.phase * 0.3) * speedMult;
 
   // Anchor the boss roaming zone to the camera so it follows the player across the scrolling world.
   var zoneLeft  = camX + 40;
@@ -80,7 +81,7 @@ function updateBoss(boss, player, darts, platforms, groundY, particles, camX) {
       for (var a = -2; a <= 2; a++) {
         var rad = Math.atan2(dy, dx) + a * 0.2;
         darts.push({ x: boss.x + boss.w / 2, y: boss.y + boss.h / 2,
-          vx: Math.cos(rad) * 4, vy: Math.sin(rad) * 4,
+          vx: Math.cos(rad) * 4 * speedMult, vy: Math.sin(rad) * 4 * speedMult,
           w: DART_W, h: DART_H, damage: 1, fromPlayer: false, mega: false, color: '#ff2200', alive: true });
       }
     } else if (boss.type === 2) {
@@ -88,18 +89,18 @@ function updateBoss(boss, player, darts, platforms, groundY, particles, camX) {
       for (var i = 0; i < count; i++) {
         var angle = (i / count) * Math.PI * 2;
         darts.push({ x: boss.x + boss.w / 2, y: boss.y + boss.h / 2,
-          vx: Math.cos(angle) * 3.5, vy: Math.sin(angle) * 3.5,
+          vx: Math.cos(angle) * 3.5 * speedMult, vy: Math.sin(angle) * 3.5 * speedMult,
           w: 6, h: 6, damage: 1, fromPlayer: false, mega: false, color: '#00ffff', alive: true });
       }
     } else {
       darts.push({ x: boss.x + boss.w / 2, y: boss.y + boss.h / 2,
-        vx: (dx / dist) * 5, vy: (dy / dist) * 5,
+        vx: (dx / dist) * 5 * speedMult, vy: (dy / dist) * 5 * speedMult,
         w: DART_W, h: DART_H, damage: 1, fromPlayer: false, mega: false, color: '#ff00ff', alive: true });
       if (boss.phase > 0) {
         for (var s = -1; s <= 1; s += 2) {
           var srad = Math.atan2(dy, dx) + s * 0.3;
           darts.push({ x: boss.x + boss.w / 2, y: boss.y + boss.h / 2,
-            vx: Math.cos(srad) * 4.5, vy: Math.sin(srad) * 4.5,
+            vx: Math.cos(srad) * 4.5 * speedMult, vy: Math.sin(srad) * 4.5 * speedMult,
             w: DART_W, h: DART_H, damage: 1, fromPlayer: false, mega: false, color: '#ff66ff', alive: true });
         }
       }

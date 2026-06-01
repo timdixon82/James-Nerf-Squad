@@ -22,14 +22,15 @@ function createEnemy(type, x, groundY) {
   };
 }
 
-function updateEnemy(e, player, darts, platforms, groundY, particles, camX) {
+function updateEnemy(e, player, darts, platforms, groundY, particles, camX, speedMult) {
   if (!e.alive) return;
+  speedMult = speedMult || 1;
   var def = ENEMIES[e.type];
   e.hurtTimer = Math.max(0, e.hurtTimer - 1);
 
   if (def.flying) {
     e.bobPhase += 0.05;
-    e.x += e.vx;
+    e.x += e.vx * speedMult;
     e.y  = (groundY - 80) + Math.sin(e.bobPhase) * 12;
     if (e.x < camX + 20 || e.x > camX + CANVAS_W - 20) {
       e.vx *= -1;
@@ -37,7 +38,7 @@ function updateEnemy(e, player, darts, platforms, groundY, particles, camX) {
     }
   } else {
     e.vy = clamp(e.vy + GRAVITY, -15, 12);
-    e.x += e.vx;
+    e.x += e.vx * speedMult;
     e.y += e.vy;
     e.onGround = false;
 
@@ -72,7 +73,7 @@ function updateEnemy(e, player, darts, platforms, groundY, particles, camX) {
       var dy   = (player.y + player.h / 2) - (e.y + e.h / 2);
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < 220 && dist > 0) {
-        var spd = 3.5;
+        var spd = 3.5 * speedMult;
         darts.push({
           x: e.x + e.w / 2, y: e.y + e.h / 2,
           vx: (dx / dist) * spd, vy: (dy / dist) * spd,

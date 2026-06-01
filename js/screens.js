@@ -220,7 +220,7 @@ function drawGameOver(ctx, score, frame, menuIdx) {
 
 /* ── Settings ───────────────────────────────────────────────────────────── */
 
-function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame) {
+function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame, difficulty) {
   ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
   px(ctx, 'SETTINGS', CANVAS_W / 2, 10, 8, '#ffff00', 'center');
 
@@ -255,6 +255,16 @@ function drawSettings(ctx, keys, rebinding, altButtonLayout, selectedIdx, frame)
   px(ctx, altButtonLayout ? 'FIRE=LEFT  D-PAD=RIGHT' : 'D-PAD=LEFT  FIRE=RIGHT',
      CANVAS_W / 2, lhY + 14, 4, '#777', 'center', false);
 
+  var spY   = lhY + rowH + 4;
+  var spSel = selectedIdx === bindItems.length + 1;
+  ctx.fillStyle = spSel ? 'rgba(255,255,255,0.08)' : 'transparent';
+  ctx.fillRect(20, spY - 2, CANVAS_W - 40, rowH);
+  px(ctx, 'SPEED', 24, spY, 5, spSel ? '#ffff44' : '#ccc');
+  px(ctx, difficulty === 'easy' ? 'EASY' : 'HARD', CANVAS_W - 24, spY, 5,
+     difficulty === 'easy' ? '#88ff88' : '#ff6666', 'right');
+  px(ctx, difficulty === 'easy' ? 'EASY = HALF SPEED' : 'HARD = FULL SPEED',
+     CANVAS_W / 2, spY + 14, 4, '#777', 'center', false);
+
   px(ctx, 'UP/DOWN=SELECT  ENTER=CHANGE  ESC=BACK', CANVAS_W / 2, CANVAS_H - 14, 4, '#555', 'center');
 }
 
@@ -271,7 +281,7 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx, autoUsePowerups) {
   // Item 0: RESUME, Item 1: AUTO POWERUPS toggle, Item 2: EXIT TO MENU
   var items = [
     { label: 'RESUME' },
-    { label: 'AUTO POWERUPS: ' + (autoUsePowerups ? 'ON ' : 'OFF'), hint: 'SHIFT' },
+    { label: 'AUTO POWERUPS: ' + (autoUsePowerups ? 'ON ' : 'OFF'), hint: 'ENTER' },
     { label: 'EXIT TO MENU' },
   ];
   for (var i = 0; i < items.length; i++) {
@@ -285,7 +295,7 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx, autoUsePowerups) {
     var col = sel ? (flash ? '#ffff00' : '#fff') : UI_TEXT_DIM;
     px(ctx, items[i].label, CANVAS_W / 2, iy, 6, col, 'center');
   }
-  px(ctx, 'UP/DOWN  ENTER SELECT  SHIFT=TOGGLE AUTO', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
+  px(ctx, 'UP/DOWN=SELECT  ENTER=TOGGLE/CONFIRM  ESC=RESUME', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
 
   // Version number — decorative supplementary text; contrast ~4.5:1 is acceptable
   // for non-essential information per the brief (R-04).
