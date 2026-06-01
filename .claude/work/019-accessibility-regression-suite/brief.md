@@ -4,7 +4,7 @@
 
 Create `docs/patterns/accessibility-regression-suite.md` for James Nerf Squad. The file was flagged as missing by Sean during sprint 018 and confirmed by Carol. Carol needs it to run automated regression checks in future sprints.
 
-- Status: active
+- Status: done
 - Branch: chore/019-accessibility-regression-suite
 - Priority: 2
 - Blockers: None
