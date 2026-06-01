@@ -22,6 +22,7 @@ function Game(canvas) {
     highScores:      new Array(TOTAL_LEVELS).fill(0),
     keys:            {},
     altButtonLayout: false,
+    autoUsePowerups: false,
     skinColor:       SKIN_COLORS[0],
     hairColor:       HAIR_COLORS[0],
     clothColor:      CLOTH_COLORS[0],
@@ -72,8 +73,9 @@ Game.prototype.save = function() {
     completed:       Array.from(this.gs.completedLevels),
     highScores:      this.gs.highScores,
     keys:            this.gs.keys,
-    altButtonLayout: this.gs.altButtonLayout,
-    skinColor:       this.gs.skinColor,
+    altButtonLayout:  this.gs.altButtonLayout,
+    autoUsePowerups:  this.gs.autoUsePowerups,
+    skinColor:        this.gs.skinColor,
     hairColor:       this.gs.hairColor,
     clothColor:      this.gs.clothColor,
     touchMode:       this.gs.touchMode,
@@ -94,7 +96,8 @@ Game.prototype.load = function() {
           self.gs.keys[k] = data.keys[k] !== undefined ? data.keys[k] : DEFAULT_KEYS[k];
         }
       }
-      self.gs.altButtonLayout = data.altButtonLayout || false;
+      self.gs.altButtonLayout  = data.altButtonLayout || false;
+      self.gs.autoUsePowerups  = data.autoUsePowerups === true;
       self.gs.skinColor       = data.skinColor  || SKIN_COLORS[0];
       self.gs.hairColor       = data.hairColor  || HAIR_COLORS[0];
       self.gs.clothColor      = data.clothColor || CLOTH_COLORS[0];
@@ -521,10 +524,10 @@ Game.prototype._resumeGame = function() {
 };
 
 Game.prototype._toggleAutoUsePowerups = function() {
-  if (!this.ls) return;
-  this.ls.autoUsePowerups = !this.ls.autoUsePowerups;
+  this.gs.autoUsePowerups = !this.gs.autoUsePowerups;
+  this.save();
   playMenuClick();
-  var msg = this.ls.autoUsePowerups ? 'Auto powerups on.' : 'Auto powerups off.';
+  var msg = this.gs.autoUsePowerups ? 'Auto powerups on.' : 'Auto powerups off.';
   announce(msg);
   Speech.narrate(msg, 'normal');
 };
@@ -634,7 +637,6 @@ Game.prototype.startLevel = function(idx) {
     squadMembers: [],
     particles:    [],
     inventory:    [],
-    autoUsePowerups: false,
     camX:         0,
     worldW:       worldW,
     groundY:      gY,
@@ -850,7 +852,7 @@ Game.prototype._updateGameplay = function() {
       pu.alive = false;
       playPowerUp();
       var label = POWERUPS[pu.type] ? POWERUPS[pu.type].label : pu.type;
-      if (ls.autoUsePowerups) {
+      if (this.gs.autoUsePowerups) {
         // Auto-use: apply the powerup immediately, bypassing inventory.
         this._applyPowerUp(pu.type, player, ls);
         var autoMsg = 'Auto Use: ' + label + '.';
@@ -1131,7 +1133,7 @@ Game.prototype._drawPause = function() {
           player.hasShield, player.speedBoost, player.megaDartReady, player.squadActive,
           this.gs.levelIdx, cfg.bgName, this.ls ? this.ls.inventory.length : 0, tm);
   if (boss && boss.alive) drawBossBar(this.ctx, cfg.bossName, boss.hp, boss.maxHp);
-  drawPauseMenu(this.ctx, this.gs.frame, this.pauseMenuIdx, this.ls ? this.ls.autoUsePowerups : false);
+  drawPauseMenu(this.ctx, this.gs.frame, this.pauseMenuIdx, this.gs.autoUsePowerups);
   if (tm) drawPauseTouchButtons(this.ctx, this.pauseMenuIdx);
 };
 Game.prototype._drawInventory = function() {
