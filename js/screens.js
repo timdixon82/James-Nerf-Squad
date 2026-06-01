@@ -281,7 +281,7 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx, autoUsePowerups) {
   // Item 0: RESUME, Item 1: AUTO POWERUPS toggle, Item 2: EXIT TO MENU
   var items = [
     { label: 'RESUME' },
-    { label: 'AUTO POWERUPS: ' + (autoUsePowerups ? 'ON ' : 'OFF'), hint: 'SHIFT' },
+    { label: 'AUTO POWERUPS: ' + (autoUsePowerups ? 'ON ' : 'OFF'), hint: 'ENTER' },
     { label: 'EXIT TO MENU' },
   ];
   for (var i = 0; i < items.length; i++) {
@@ -295,7 +295,7 @@ function drawPauseMenu(ctx, frame, pauseMenuIdx, autoUsePowerups) {
     var col = sel ? (flash ? '#ffff00' : '#fff') : UI_TEXT_DIM;
     px(ctx, items[i].label, CANVAS_W / 2, iy, 6, col, 'center');
   }
-  px(ctx, 'UP/DOWN  ENTER SELECT  SHIFT=TOGGLE AUTO', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
+  px(ctx, 'UP/DOWN=SELECT  ENTER=TOGGLE/CONFIRM  ESC=RESUME', CANVAS_W / 2, panY + panH - 14, 4, '#555', 'center');
 
   // Version number — decorative supplementary text; contrast ~4.5:1 is acceptable
   // for non-essential information per the brief (R-04).

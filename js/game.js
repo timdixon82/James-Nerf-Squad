@@ -328,7 +328,6 @@ Game.prototype._handleMenuKey = function(key, isRepeat) {
       if (key === 'ArrowUp'   || key === 'w' || key === 'W') { this.pauseMenuIdx = (this.pauseMenuIdx - 1 + 3) % 3; playMenuClick(); }
       else if (key === 'ArrowDown' || key === 's' || key === 'S') { this.pauseMenuIdx = (this.pauseMenuIdx + 1) % 3; playMenuClick(); }
       else if (key === 'Enter' || key === ' ')            this._activatePauseItem(this.pauseMenuIdx);
-      else if (key === k.switch)                          this._toggleAutoUsePowerups();
       else if (key === 'Escape' || key === k.pause || key === 'p') this._resumeGame();
       break;
 
