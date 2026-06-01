@@ -33,6 +33,7 @@ build/
 
 # Logs
 *.log
+lint.md
 
 # Claude Code local settings — local to this machine, not shared
 .claude/settings.local.json
