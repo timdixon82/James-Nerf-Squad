@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.1.0...v1.2.0) (2026-06-01)
+
+
+### Features
+
+* accessibility and housekeeping sprint 018 (partial — R-02 pending) ([#16](https://github.com/timdixon82/James-Nerf-Squad/issues/16)) ([cb4ac0e](https://github.com/timdixon82/James-Nerf-Squad/commit/cb4ac0ecb8a833ee984ca8665ebd757e52f72051))
+
 ## [1.1.0](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.0.0...v1.1.0) (2026-05-31)
 
 
