@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.2.0...v1.3.0) (2026-06-01)
+
+
+### Features
+
+* sprint 020 R-01, R-02, R-03 (auto-use hint, persistence, Easy/Hard speed) ([#18](https://github.com/timdixon82/James-Nerf-Squad/issues/18)) ([173f6ac](https://github.com/timdixon82/James-Nerf-Squad/commit/173f6ace38b52eef2cb0318e544e318e979b5c99))
+
 ## [1.2.0](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.1.0...v1.2.0) (2026-06-01)
 
 
