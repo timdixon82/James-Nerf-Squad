@@ -391,30 +391,42 @@ else
 fi
 
 # ── Pass 2: agent CORE sections ───────────────────────────────────────────────
+#
+# Walks .claude/agents/*.md (the eight core agents) and any subdirectory agent
+# files that carry a <!-- BEGIN CORE --> block (e.g. .claude/agents/accessibility/).
+# Files without a CORE block are skipped with a warning, so non-CORE specialist
+# files (plain markdown, manifests, LICENCE) are never accidentally modified.
 
 echo ""
 echo "Pass 2: agent CORE sections"
 
-for tfile in "$template"/.claude/agents/*.md; do
-  [ -f "$tfile" ] || continue
-  name="$(basename "$tfile")"
-  pfile="$project_root/.claude/agents/$name"
+# Helper: update CORE block in one agent file.
+# Arguments: $1 = template file path, $2 = project file path, $3 = display name
+_update_core() {
+  local tfile="$1"
+  local pfile="$2"
+  local display="$3"
 
   if [ ! -f "$pfile" ]; then
-    echo "  NEW in master, not yet in this project: $name (skipping)"
-    continue
+    mkdir -p "$(dirname "$pfile")"
+    cp "$tfile" "$pfile"
+    echo "  added:     $display (new agent copied from template)"
+    changed=$((changed + 1))
+    return
   fi
 
+  local core_file
   core_file="$(mktemp)"
   awk '/<!-- BEGIN CORE -->/{f=1} f{print} /<!-- END CORE -->/{f=0}' "$tfile" > "$core_file"
   if [ ! -s "$core_file" ]; then
     rm -f "$core_file"
-    echo "  WARNING: no CORE block in $name; skipping"
-    continue
+    echo "  WARNING: no CORE block in $display; skipping"
+    return
   fi
 
   # Write the CORE block to a temp file and read it back with getline.
   # Passing a multi-line string via awk -v fails on macOS awk (BSD awk).
+  local tmp
   tmp="$(mktemp)"
   awk -v cfile="$core_file" '
     /<!-- BEGIN CORE -->/ {
@@ -428,12 +440,32 @@ for tfile in "$template"/.claude/agents/*.md; do
 
   if cmp -s "$pfile" "$tmp"; then
     rm -f "$tmp"
-    echo "  unchanged: .claude/agents/$name"
+    echo "  unchanged: $display"
   else
     mv "$tmp" "$pfile"
-    echo "  updated:   .claude/agents/$name (CORE replaced, OVERLAY preserved)"
+    echo "  updated:   $display (CORE replaced, OVERLAY preserved)"
     changed=$((changed + 1))
   fi
+}
+
+# Core agents at the top level of .claude/agents/
+for tfile in "$template"/.claude/agents/*.md; do
+  [ -f "$tfile" ] || continue
+  name="$(basename "$tfile")"
+  pfile="$project_root/.claude/agents/$name"
+  _update_core "$tfile" "$pfile" ".claude/agents/$name"
+done
+
+# Specialist agents in subdirectories of .claude/agents/ (e.g. accessibility/).
+# Only .md files that contain a CORE block are processed; the helper skips
+# those without one, so plain manifests, LICENCE files, and README files
+# in subdirectories are never touched.
+for tfile in "$template"/.claude/agents/*/*.md; do
+  [ -f "$tfile" ] || continue
+  subdir="$(basename "$(dirname "$tfile")")"
+  name="$(basename "$tfile")"
+  pfile="$project_root/.claude/agents/$subdir/$name"
+  _update_core "$tfile" "$pfile" ".claude/agents/$subdir/$name"
 done
 
 # ── Update stamps ─────────────────────────────────────────────────────────────
