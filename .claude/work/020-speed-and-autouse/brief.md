@@ -4,7 +4,7 @@
 
 Two small features. First: fix the auto-use powerups toggle — the hint label is wrong (says SHIFT, should say ENTER) and the setting resets on every level start and is not saved between sessions. Second: add a game-speed option to the Settings screen with two values — Easy (50% of all speed parameters) and Hard (current speed, unchanged). Both the speed choice and the auto-use setting persist to localStorage.
 
-- Status: active
+- Status: done
 - Branch: feat/020-speed-and-autouse
 - Priority: 1
 - Blockers: None
