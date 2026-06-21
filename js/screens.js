@@ -112,12 +112,12 @@ function drawLevelSelect(ctx, completedLevels, highScores, currentHover, frame) 
   px(ctx, 'MISSION SELECT', CANVAS_W / 2, 10, 7, '#ffff00', 'center');
 
   var cols = 3, startX = 30, startY = 35, cellW = 130, cellH = 50;
-  for (var i = 0; i < 9; i++) {
+  for (var i = 0; i < TOTAL_LEVELS; i++) {
     var col = i % cols, row = Math.floor(i / cols);
     var bx = startX + col * cellW, by = startY + row * cellH;
     var unlocked = i === 0 || completedLevels.has(i - 1);
     var completed = completedLevels.has(i);
-    var isBoss    = (i + 1) % 3 === 0;
+    var isBoss    = LEVELS[i].bossLevel;
     var hover     = currentHover === i;
 
     ctx.fillStyle   = hover ? (unlocked ? '#334488' : '#222') : (unlocked ? '#223366' : '#111');

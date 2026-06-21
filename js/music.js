@@ -74,7 +74,8 @@ function startMusic(theme) {
 function stopMusic() {
   if (_musicInterval !== null) { clearInterval(_musicInterval); _musicInterval = null; }
   _currentTheme = null;
-  if (_audioCtx) {
+  var c = getAudioCtx();
+  if (c) {
     for (var i = 0; i < _musicNodes.length; i++) {
       try { if (_musicNodes[i].stop) _musicNodes[i].stop(); _musicNodes[i].disconnect(); } catch(e) {}
     }

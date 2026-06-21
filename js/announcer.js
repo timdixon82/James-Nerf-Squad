@@ -8,10 +8,20 @@
  * string is sent twice in a row (e.g. retrying the same level).
  */
 
-function announce(msg) {
+var _announceQueue = [];
+var _announcing = false;
+
+function _processQueue() {
+  if (_announceQueue.length === 0) { _announcing = false; return; }
+  _announcing = true;
+  var msg = _announceQueue.shift();
   var el = document.getElementById('game-announcer');
-  if (!el) return;
-  // Clear first so that a repeated message triggers a fresh announcement.
+  if (!el) { _processQueue(); return; }
   el.textContent = '';
-  requestAnimationFrame(function() { el.textContent = msg; });
+  requestAnimationFrame(function() { el.textContent = msg; setTimeout(_processQueue, 500); });
+}
+
+function announce(msg) {
+  _announceQueue.push(msg);
+  if (!_announcing) _processQueue();
 }
