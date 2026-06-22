@@ -66,18 +66,7 @@ Player.prototype.update = function(inputState, platforms, groundY) {
     this.onGround = true;
   }
 
-  for (var i = 0; i < platforms.length; i++) {
-    var p = platforms[i];
-    if (this.vy < 0) continue;
-    var prevBottom = this.y + this.h - this.vy;
-    var currBottom = this.y + this.h;
-    if (this.x + this.w <= p.x || this.x >= p.x + p.w) continue;
-    if (prevBottom <= p.y + 2 && currBottom >= p.y - 2) {
-      this.y        = p.y - this.h;
-      this.vy       = 0;
-      this.onGround = true;
-    }
-  }
+  checkPlatformCollision(this, platforms);
 
   if (this.invincible   > 0) this.invincible--;
   if (this.fireCooldown > 0) this.fireCooldown--;

@@ -132,10 +132,11 @@ Game.prototype.resize = function() {
   this.canvas.style.top    = ((vh - cssH) / 2) + 'px';
   this.ctx.setTransform(1, 0, 0, 1, 0, 0);
   this.ctx.scale(this.pixelScale * this.dpr, this.pixelScale * this.dpr);
+  this.canvasRect = this.canvas.getBoundingClientRect();
 };
 
 Game.prototype.clientToGame = function(clientX, clientY) {
-  var rect = this.canvas.getBoundingClientRect();
+  var rect = this.canvasRect;
   return {
     x: (clientX - rect.left) / this.pixelScale,
     y: (clientY - rect.top)  / this.pixelScale,

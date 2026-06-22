@@ -1,4 +1,3 @@
-
 /**
  * utils.js
  * Pure helper functions used across the codebase.
@@ -13,6 +12,23 @@ function lerp(a, b, t)    { return a + (b - a) * t; }
 function rnd(min, max)    { return Math.random() * (max - min) + min; }
 function rndInt(min, max) { return Math.floor(rnd(min, max + 1)); }
 function choice(arr)      { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function checkPlatformCollision(entity, platforms) {
+  for (var i = 0; i < platforms.length; i++) {
+    var p = platforms[i];
+    if (entity.vy < 0) continue;
+    if (entity.x + entity.w <= p.x || entity.x >= p.x + p.w) continue;
+    var prevBottom = entity.y + entity.h - entity.vy;
+    var currBottom = entity.y + entity.h;
+    if (prevBottom <= p.y + 2 && currBottom >= p.y - 2) {
+      entity.y        = p.y - entity.h;
+      entity.vy       = 0;
+      entity.onGround = true;
+      return true;
+    }
+  }
+  return false;
+}
 
 function shadeColor(hex, amount) {
   try {
