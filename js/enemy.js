@@ -48,18 +48,7 @@ function updateEnemy(e, player, darts, platforms, groundY, particles, camX, spee
       e.onGround = true;
     }
 
-    for (var i = 0; i < platforms.length; i++) {
-      var p = platforms[i];
-      if (e.vy < 0) continue;
-      if (e.x + e.w <= p.x || e.x >= p.x + p.w) continue;
-      var prevBottom = e.y + e.h - e.vy;
-      var currBottom = e.y + e.h;
-      if (prevBottom <= p.y + 2 && currBottom >= p.y - 2) {
-        e.y        = p.y - e.h;
-        e.vy       = 0;
-        e.onGround = true;
-      }
-    }
+    checkPlatformCollision(e, platforms);
 
     if (e.x < camX + 10)            { e.vx =  Math.abs(def.speed); e.dir =  1; }
     if (e.x > camX + CANVAS_W - 10) { e.vx = -Math.abs(def.speed); e.dir = -1; }
@@ -134,16 +123,7 @@ function updateSquadMember(sq, player, enemies, boss, darts, platforms, groundY)
 
   if (sq.y + 18 >= groundY) { sq.y = groundY - 18; sq.vy = 0; sq.onGround = true; }
 
-  for (var i = 0; i < platforms.length; i++) {
-    var p = platforms[i];
-    if (sq.vy < 0) continue;
-    if (sq.x + 12 <= p.x || sq.x >= p.x + p.w) continue;
-    var prevBottom = sq.y + 18 - sq.vy;
-    var currBottom = sq.y + 18;
-    if (prevBottom <= p.y + 2 && currBottom >= p.y - 2) {
-      sq.y = p.y - 18; sq.vy = 0; sq.onGround = true;
-    }
-  }
+  checkPlatformCollision(sq, platforms);
 
   sq.shootTimer--;
   if (sq.shootTimer <= 0) {

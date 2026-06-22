@@ -21,8 +21,8 @@
 var Speech = (function () {
   var supported = typeof window !== 'undefined' && !!window.speechSynthesis;
 
-  // Simple queue: at most one pending utterance at a time.
-  var pending = null;
+  // Simple queue: multiple utterances can be queued at a time.
+  var pending = [];
 
   function _speak(msg) {
     if (!supported) return;
@@ -30,9 +30,8 @@ var Speech = (function () {
     utt.rate  = 1.0;
     utt.pitch = 1.0;
     utt.onend = function() {
-      if (pending) {
-        var next = pending;
-        pending = null;
+      if (pending.length > 0) {
+        var next = pending.shift();
         _speak(next);
       }
     };

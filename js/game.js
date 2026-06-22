@@ -132,10 +132,11 @@ Game.prototype.resize = function() {
   this.canvas.style.top    = ((vh - cssH) / 2) + 'px';
   this.ctx.setTransform(1, 0, 0, 1, 0, 0);
   this.ctx.scale(this.pixelScale * this.dpr, this.pixelScale * this.dpr);
+  this.canvasRect = this.canvas.getBoundingClientRect();
 };
 
 Game.prototype.clientToGame = function(clientX, clientY) {
-  var rect = this.canvas.getBoundingClientRect();
+  var rect = this.canvasRect;
   return {
     x: (clientX - rect.left) / this.pixelScale,
     y: (clientY - rect.top)  / this.pixelScale,
@@ -502,8 +503,8 @@ Game.prototype._goTitle = function() {
   this._setScreen('title');
   startMusic('title');
   playMenuClick();
-  announce("James' Nerf Squad. Press Enter or Space to start.");
-  Speech.narrate("James' Nerf Squad. Press Enter or Space to start.", 'normal');
+  announce("James' Nerf Squad. Main menu. Press Enter or Space to start.");
+  Speech.narrate("James' Nerf Squad. Main menu. Press Enter or Space to start.", 'normal');
 };
 Game.prototype._goSettings = function() { this._setScreen('settings'); this.settingsIdx = 0; playMenuClick(); };
 Game.prototype._goHelp     = function() { this._setScreen('help'); this.helpPage = 0; playMenuClick(); };
@@ -566,6 +567,9 @@ Game.prototype._nextLevel = function() {
 };
 
 Game.prototype.startLevel = function(idx) {
+  if (idx === 0 || this.gs.completedLevels.has(idx - 1)) {
+    // unlock logic for starter level
+  }
   var unlocked = idx === 0 || this.gs.completedLevels.has(idx - 1);
   if (!unlocked) return;
 
@@ -615,8 +619,9 @@ Game.prototype.startLevel = function(idx) {
     Speech.narrate('Warning. Boss fight: ' + cfg.bossName + '.', 'high');
   } else {
     startMusic('action');
-    announce('Level ' + (idx + 1) + ': ' + cfg.bgName + '. Lives: 3.');
-    Speech.narrate('Level ' + (idx + 1) + ': ' + cfg.bgName + '. Lives: 3.', 'normal');
+    var enemyCountText = ' enemies';
+    announce('Level ' + (idx + 1) + ': ' + cfg.bgName + '. Lives: 3.' + enemyCountText);
+    Speech.narrate('Level ' + (idx + 1) + ': ' + cfg.bgName + '. Lives: 3.' + enemyCountText, 'normal');
   }
 
   // Pre-place powerups for boss levels so the player has resources from the
@@ -893,8 +898,9 @@ Game.prototype._updateGameplay = function() {
     ls.levelComplete = true; ls.lcTimer = 0;
     playLevelComplete();
     this.gs.completedLevels.add(this.gs.levelIdx);
-    announce('Mission complete. Press Space to continue.');
-    Speech.narrate('Mission complete. Press Space to continue.', 'normal');
+    var scoreText = ' Score: ' + player.score;
+    announce('Mission complete. Press Space to continue.' + scoreText);
+    Speech.narrate('Mission complete. Press Space to continue.' + scoreText, 'normal');
     var prev = this.gs.highScores[this.gs.levelIdx] || 0;
     if (player.score > prev) this.gs.highScores[this.gs.levelIdx] = player.score;
     var nextIdx      = this.gs.levelIdx + 1;
