@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.3.0...v1.3.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* accessibility announcements and core structural bugs ([00d7c3e](https://github.com/timdixon82/James-Nerf-Squad/commit/00d7c3efe3eb3bcec94a80b423deffeea46e97d6))
+* add dependabot cooldown block to satisfy semgrep dependabot-missing-cooldown rule ([#31](https://github.com/timdixon82/James-Nerf-Squad/issues/31)) ([34fc2e9](https://github.com/timdixon82/James-Nerf-Squad/commit/34fc2e9544c79c15c45bdbcce51707a15df85bff))
+
 ## [1.3.0](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.2.0...v1.3.0) (2026-06-01)
 
 
