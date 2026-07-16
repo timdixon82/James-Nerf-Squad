@@ -52,6 +52,8 @@ var Input = (function () {
 
   function onKeyUp(key) {
     held[key] = false;
+    held[key.toLowerCase()] = false;
+    held[key.toUpperCase()] = false;
     if (key === bindings.left  || key === 'a' || key === 'A') state.left  = false;
     if (key === bindings.right || key === 'd' || key === 'D') state.right = false;
     if (key === bindings.jump  || key === 'w' || key === 'W') state.jump  = false;
@@ -108,6 +110,7 @@ var Input = (function () {
     for (k in touchHeld) touchHeld[k] = false;
     state.left = false; state.right = false;
     state.jump = false; state.shoot = false;
+    clearOneShots();
   });
 
   document.addEventListener('visibilitychange', function() {
@@ -117,6 +120,7 @@ var Input = (function () {
       for (k in touchHeld) touchHeld[k] = false;
       state.left = false; state.right = false;
       state.jump = false; state.shoot = false;
+      clearOneShots();
     }
   });
 
@@ -127,6 +131,7 @@ var Input = (function () {
     for (k in touchHeld) touchHeld[k] = false;
     state.left = false; state.right = false;
     state.jump = false; state.shoot = false;
+    clearOneShots();
   });
 
   return {
