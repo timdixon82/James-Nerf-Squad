@@ -20,8 +20,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export function loadScript(relativePath) {
   const fullPath = path.join(__dirname, '..', '..', relativePath);
   const source = fs.readFileSync(fullPath, 'utf8');
-  const sandbox = { window: {}, Math };
+
+  // Some scripts (js/input.js) register window/document listeners at
+  // top-level script scope (focus-loss handling). Provide minimal stubs
+  // that record listeners so a test can trigger them directly, without
+  // pulling in a full DOM implementation.
+  const listeners = { window: {}, document: {} };
+  function makeTarget(name) {
+    return {
+      addEventListener(type, fn) {
+        (listeners[name][type] = listeners[name][type] || []).push(fn);
+      },
+      visibilityState: 'visible',
+    };
+  }
+
+  const sandbox = { window: makeTarget('window'), document: makeTarget('document'), Math };
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox, { filename: fullPath });
+  sandbox.__listeners = listeners;
+  sandbox.__fireListeners = function (target, type) {
+    (listeners[target][type] || []).forEach((fn) => fn());
+  };
   return sandbox;
 }

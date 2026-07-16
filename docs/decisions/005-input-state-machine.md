@@ -2,7 +2,7 @@
 
 Date: 2026-05-23
 Author: Jacob (architect)
-Status: Accepted; defect fix required (keys-sticking bug)
+Status: Accepted; defect fix shipped (keys-sticking bug, Defects 1-3 all fixed)
 
 ## Decision
 
