@@ -105,7 +105,9 @@ jobs:
         # index.html, css/, js/, and fonts/ (see index.html's <script src>
         # and <link> tags), so the include list below is customised to
         # match this repository's real layout rather than the template
-        # default.
+        # default. A project that genuinely needs an extra runtime path
+        # adds one explicit --include line for it, rather than loosening
+        # the list.
         #
         # Every include below (other than the '*/' descend-only pattern)
         # carries a leading '/' to anchor it to the repo root. An rsync
