@@ -3,15 +3,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>James' Nerf Squad</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+<!-- WCAG 2.4.1 Bypass Blocks / 1.3.1 Info and Relationships: a single main
+     landmark wraps the whole game so landmark navigation (VoiceOver VO+U,
+     JAWS R key) has a structure to jump to, even though this page has only
+     one visible region. -->
+<main>
 <canvas id="gameCanvas" role="img" aria-label="James' Nerf Squad game area"></canvas>
 <!-- WCAG 1.3.1 / 4.1.3: visually hidden live region for screen-reader announcements -->
 <div id="game-announcer" aria-live="polite" aria-atomic="false"
      style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0;margin:-1px"></div>
+</main>
 <script>
 // Inline a tiny error catcher so black-screen failures are visible
 window.addEventListener('error', function(e) {
