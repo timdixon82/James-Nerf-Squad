@@ -40,3 +40,7 @@ Citation checks: not applicable, no Tad or Simon draft in this work.
 Release-readiness note: from a testing perspective this branch is ready to merge. It is a workflow/tooling sync with no user-facing surface, all eight required CI checks are green, the branch is cleanly mergeable with `main`, and Jacob's architecture review and Jed's security review are already recorded as passed with no concerns. Open item outside Carol's scope: confirming Dependabot alert #4 (adm-zip) is closed by the version bump, which the brief assigns as a follow-up confirmation rather than a merge blocker. No pending checks remain, so there is nothing to wait on before Sonja brings this to Tim for the merge decision.
 - [2026-07-19 07:20:52 UTC] Carol testing pass completed
 - [2026-07-19 08:21:15] subagent completed
+
+## [2026-07-19] Sonja | merged with Tim's approval
+
+Tim gave express approval to merge. Merged pull request #36 into `main` (merge commit `e5d1287`). Local `main` fast-forwarded to match. Confirmed Dependabot alert #4 (adm-zip) is now `state: fixed`. Work folder closed.

@@ -6,11 +6,11 @@ Pull request #36, `chore/sync-template-v1.8.1`, brings this project onto agent-t
 
 Preamble fields:
 
-- Status: `blocked`
-- Branch: `chore/sync-template-v1.8.1`
+- Status: `done`
+- Branch: `main` (merged, commit `e5d1287`)
 - Mockup mode: (not applicable, no user interface change)
 - Priority: 1
-- Blockers: Awaiting Tim's express approval to merge pull request #36.
+- Blockers: None
 
 ## Requirements
 
