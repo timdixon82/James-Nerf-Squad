@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.3.1...v1.3.2) (2026-07-23)
+
+
+### Bug Fixes
+
+* bump fast-uri to patch high-severity advisory ([#41](https://github.com/timdixon82/James-Nerf-Squad/issues/41)) ([e9b1fb9](https://github.com/timdixon82/James-Nerf-Squad/commit/e9b1fb93fcc508b17142d5eb7ced758d4b0e84b8))
+
 ## [1.3.1](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.3.0...v1.3.1) (2026-07-16)
 
 
