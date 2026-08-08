@@ -11,8 +11,8 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "eslint": "10.7.0",
-    "globals": "17.7.0",
+    "eslint": "10.8.0",
+    "globals": "17.8.0",
     "htmlhint": "1.9.2",
     "vitest": "4.1.10"
   }
