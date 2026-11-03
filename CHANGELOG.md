@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.3](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.3.2...v1.3.3) (2026-11-03)
+
+
+### Bug Fixes
+
+* **deps:** override minimatch to 11.0.1 or later to clear Dependabot alert ([#60](https://github.com/timdixon82/James-Nerf-Squad/issues/60)) ([ab62780](https://github.com/timdixon82/James-Nerf-Squad/commit/ab627806de935dc59bc4cbb072005fa19913923d))
+
 ## [1.3.2](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.3.1...v1.3.2) (2026-07-23)
 
 
