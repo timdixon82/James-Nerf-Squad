@@ -39,12 +39,12 @@ This expands to `eslint "js/*.js"`. A clean pass exits with code 0. Warnings are
 
 Pa11y (an automated accessibility testing tool) loads `index.html` in a headless Chrome browser and runs WCAG 2.2 AAA checks against the served HTML. It tests the document structure, ARIA (Accessible Rich Internet Applications) attributes, and the live announcer region. It cannot test the canvas game content itself; that is covered in the manual checks below.
 
-Pa11y is not installed in the main `package.json`. It runs in CI (Continuous Integration) via `.github/accessibility-tools/` and can be run locally from that folder.
+Pa11y is not installed in the main `package.json`. It runs in CI (Continuous Integration) via `ci-tools/accessibility-tools/` and can be run locally from that folder.
 
 Run command (local, after serving the site):
 
 1. Start a local server: `python3 -m http.server 8080 --directory /Users/timdixon/Code/Github/James-Nerf-Squad`
-2. Run Pa11y: `node_modules/.bin/pa11y --standard WCAG2AAA --config ../../pa11y.json http://localhost:8080/index.html` (from `.github/accessibility-tools/` after running `npm ci` there)
+2. Run Pa11y: `node_modules/.bin/pa11y --standard WCAG2AAA --config ../../pa11y.json http://localhost:8080/index.html` (from `ci-tools/accessibility-tools/` after running `npm ci` there)
 
 A clean pass exits with code 0 and reports no errors or warnings. Any finding that is not listed in `pa11y.json`'s `ignore` array is a blocker.
 
@@ -54,7 +54,7 @@ The `pa11y.json` file in the project root is the base configuration. In CI, a `p
 
 The axe-core (an accessibility rule engine) command-line interface loads `index.html` and runs WCAG 2.0 A, AA, AAA and WCAG 2.2 AA and AAA rules. It complements Pa11y by using a different rule engine, catching issues either tool might miss on its own.
 
-axe-core is also installed in `.github/accessibility-tools/`. It runs in CI alongside Pa11y.
+axe-core is also installed in `ci-tools/accessibility-tools/`. It runs in CI alongside Pa11y.
 
 Run command (local, with the server running on port 8080):
 
@@ -62,7 +62,7 @@ Run command (local, with the server running on port 8080):
 node_modules/.bin/axe http://localhost:8080/index.html --tags wcag2a,wcag2aa,wcag2aaa,wcag22aa,wcag22aaa --chrome-options=no-sandbox
 ```
 
-(Run from `.github/accessibility-tools/` after `npm ci`.)
+(Run from `ci-tools/accessibility-tools/` after `npm ci`.)
 
 A clean pass exits with code 0 and reports no violations. Any violation is a blocker.
 
@@ -85,12 +85,12 @@ These checks run alongside the automated tools. No automated tool can substitute
 Run the checks in this order.
 
 1. Install the main project dependencies: `npm ci` (from the project root).
-2. Install the accessibility tool dependencies: `npm ci` (from `.github/accessibility-tools/`).
+2. Install the accessibility tool dependencies: `npm ci` (from `ci-tools/accessibility-tools/`).
 3. Run the HTML linter: `npm run lint:html` (from the project root). Fix any errors before continuing.
 4. Run the JavaScript linter: `npm run lint:js` (from the project root). Investigate any warnings; fix any errors before continuing.
 5. Start a local HTTP server: `python3 -m http.server 8080 --directory /Users/timdixon/Code/Github/James-Nerf-Squad`
-6. Run Pa11y: `node_modules/.bin/pa11y --standard WCAG2AAA --config ../../pa11y.json http://localhost:8080/index.html` (from `.github/accessibility-tools/`). Fix any findings not in the ignore list before continuing.
-7. Run axe-core: `node_modules/.bin/axe http://localhost:8080/index.html --tags wcag2a,wcag2aa,wcag2aaa,wcag22aa,wcag22aaa --chrome-options=no-sandbox` (from `.github/accessibility-tools/`). Fix any violations before continuing.
+6. Run Pa11y: `node_modules/.bin/pa11y --standard WCAG2AAA --config ../../pa11y.json http://localhost:8080/index.html` (from `ci-tools/accessibility-tools/`). Fix any findings not in the ignore list before continuing.
+7. Run axe-core: `node_modules/.bin/axe http://localhost:8080/index.html --tags wcag2a,wcag2aa,wcag2aaa,wcag22aa,wcag22aaa --chrome-options=no-sandbox` (from `ci-tools/accessibility-tools/`). Fix any violations before continuing.
 8. Carry out manual check 1: keyboard-only navigation.
 9. Carry out manual check 2: live-region spot-check.
 10. Carry out manual check 3: reduced-motion gate.
@@ -113,7 +113,7 @@ Carol signs off a sprint as ready for merge when all of the following are true.
 
 ## Adding a new check
 
-To add a new automated check, install the tool in `.github/accessibility-tools/package.json` (so Dependabot can track it), add an npm script to the root `package.json` if a local run command is needed, add a step to `.github/workflows/accessibility.yml`, and add a row to the "Automated tools" section of this document with the tool name and version, what it checks, and how to run it. To add a new manual check, add a numbered item to the "Manual checks" section and note any prerequisites, such as a specific browser setting or DevTools panel.
+To add a new automated check, install the tool in `ci-tools/accessibility-tools/package.json` (so Dependabot can track it), add an npm script to the root `package.json` if a local run command is needed, add a step to `.github/workflows/accessibility.yml`, and add a row to the "Automated tools" section of this document with the tool name and version, what it checks, and how to run it. To add a new manual check, add a numbered item to the "Manual checks" section and note any prerequisites, such as a specific browser setting or DevTools panel.
 
 ## Recording exceptions and deferred findings
 
