@@ -9,3 +9,7 @@ Jacob produced the architecture review and nine ADRs (work folder 017). Jed prod
 ## [2026-05-30] onboarding | Template alignment
 
 Project onboarded onto the agent team template via `chore/template-onboarding`. Files added: CLAUDE.md, .editorconfig, VERSION (1.0.0), release-please-config.json, .release-please-manifest.json, package.json with HTMLHint and ESLint, eslint.config.js, .htmlhintrc, all six GitHub Actions workflows (accessibility, CI, CodeQL, deploy, release, security), .github/accessibility-tools/, .github/dependabot.yml, .github/pull_request_template.md, and this docs/ wiki skeleton. .gitignore replaced with the team template version. pa11y.json updated with documentation comment block. Nine ADRs transcribed from Jacob's backfill review into docs/decisions/. Security review transcribed from Jed's backfill review.
+
+## [2026-11-08] ingest | npm tool folders moved to ci-tools
+
+The lint-tools and accessibility-tools folders moved from .github to a top-level ci-tools folder, because Dependabot refuses to create npm update pull requests for a root .github folder. The lint and accessibility workflows and the Dependabot entries now point at ci-tools, and docs/patterns/accessibility-regression-suite.md names the new accessibility-tools path. This follows the pilot in work folder 058 of the AgentTeam repository. Older entries and work-folder notes that name the old paths are left as history.
