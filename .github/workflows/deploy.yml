@@ -184,15 +184,20 @@ jobs:
             echo "path=dist" >> "$GITHUB_OUTPUT"
           else
             mkdir _site
-            # The allow-listed paths below (styles/, scripts/, data/,
-            # assets/, index.html) are published to the public site: never
-            # put a secret or other non-public file in any of them.
+            # PROJECT-SPECIFIC ALLOW-LIST (James Nerf Squad). This differs
+            # from the template list on purpose, and deploy.yml is listed in
+            # .claude/workflows-protect so a template sync keeps it.
+            # The game needs exactly: index.html, css/, js/, fonts/ and the
+            # root VERSION file (js/main.js fetches it for the pause screen).
+            # The root scripts/ folder is team tooling and tests/ holds unit
+            # tests, so neither is published. The paths below are public:
+            # never put a secret or other non-public file in any of them.
             rsync -a --prune-empty-dirs --safe-links \
                      --include='/index.html' \
-                     --include='/styles/***' \
-                     --include='/scripts/***' \
-                     --include='/data/***' \
-                     --include='/assets/***' \
+                     --include='/VERSION' \
+                     --include='/css/***' \
+                     --include='/js/***' \
+                     --include='/fonts/***' \
                      --include='*/' \
                      --exclude='*' \
                      ./ _site/

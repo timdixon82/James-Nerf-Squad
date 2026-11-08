@@ -1,0 +1,3 @@
+# Workflow files the template sync must never overwrite (bare file names, one per line).
+# deploy.yml carries a project-specific deploy allow-list (index.html, VERSION, css/, js/, fonts/).
+deploy.yml
