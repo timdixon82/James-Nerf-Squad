@@ -1,0 +1,37 @@
+# Publish list for James Nerf Squad: the paths that go on the public site.
+# Everything here is public. Never add a secret or non-public file.
+# The game is a static page: index.html loads css/style.css and the js/ files,
+# css/style.css loads the fonts, and js/main.js fetches VERSION at run time.
+# Sound is generated in code (Web Audio), so there are no audio files.
+/index.html
+/VERSION
+/css/
+/js/
+/fonts/
+
+# One require line per runtime file, so the live check fails if any is lost.
+require /index.html
+require /VERSION
+require /css/style.css
+require /js/announcer.js
+require /js/boss.js
+require /js/constants.js
+require /js/enemy.js
+require /js/game.js
+require /js/hud.js
+require /js/icons.js
+require /js/input.js
+require /js/main.js
+require /js/music.js
+require /js/particles.js
+require /js/player.js
+require /js/screens.js
+require /js/sound.js
+require /js/speech.js
+require /js/touch.js
+require /js/utils.js
+require /fonts/PressStart2P-cyrillic-ext.woff2
+require /fonts/PressStart2P-cyrillic.woff2
+require /fonts/PressStart2P-greek.woff2
+require /fonts/PressStart2P-latin-ext.woff2
+require /fonts/PressStart2P-latin.woff2
