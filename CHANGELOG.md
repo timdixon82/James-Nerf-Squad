@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.3](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.3.2...v1.3.3) (2026-11-12)
+
+
+### Bug Fixes
+
+* correct the deploy allow-list to the files the game loads ([#68](https://github.com/timdixon82/James-Nerf-Squad/issues/68)) ([fda4074](https://github.com/timdixon82/James-Nerf-Squad/commit/fda40744aa7bc1a01f6883b5a4a610e88081cd02))
+* **deps:** override minimatch to 11.0.1 or later to clear Dependabot alert ([#60](https://github.com/timdixon82/James-Nerf-Squad/issues/60)) ([ab62780](https://github.com/timdixon82/James-Nerf-Squad/commit/ab627806de935dc59bc4cbb072005fa19913923d))
+
 ## [1.3.2](https://github.com/timdixon82/James-Nerf-Squad/compare/v1.3.1...v1.3.2) (2026-07-23)
 
 
