@@ -49,3 +49,9 @@ lint.md
 
 # CI-only Pa11y config, derived from pa11y.json in the accessibility workflow. Generated, never committed.
 pa11y.ci.json
+
+# Local audit trail written by a team hook, not for the repository
+/lint.md
+
+# Local audit trail written by a team hook, not for the repository
+.claude/.status-rebuild.lock
